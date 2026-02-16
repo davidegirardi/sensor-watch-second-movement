@@ -29,16 +29,21 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
-    world_clock_face,
-    sunrise_sunset_face,
-    moon_phase_face,
+    timer_face,
+    interval_face,
     fast_stopwatch_face,
-    countdown_face,
-    alarm_face,
+    tally_face,
+    advanced_alarm_face,
+    sunrise_sunset_face,
+    pulsometer_face,
+    probability_face,
+    days_since_face,
     temperature_display_face,
-    voltage_face,
     settings_face,
+    nanosec_face,
+    finetune_face,
     set_time_face,
+    voltage_face,
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))
@@ -58,17 +63,17 @@ const watch_face_t watch_faces[] = {
  * Set a hex value 0-15 with 0x0 being off and 0xF being max intensity
  */
 #define MOVEMENT_DEFAULT_RED_COLOR 0x0
-#define MOVEMENT_DEFAULT_GREEN_COLOR 0xF
-#define MOVEMENT_DEFAULT_BLUE_COLOR 0x0
+#define MOVEMENT_DEFAULT_GREEN_COLOR 0xD1
+#define MOVEMENT_DEFAULT_BLUE_COLOR 0xF
 
 /* Set to true for 24h mode or false for 12h mode */
-#define MOVEMENT_DEFAULT_24H_MODE false
+#define MOVEMENT_DEFAULT_24H_MODE true
 
 /* Enable or disable the sound on mode button press */
 #define MOVEMENT_DEFAULT_BUTTON_SOUND true
 
 #define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_SOFT
-#define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_LOUD
+#define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_SOFT
 #define MOVEMENT_DEFAULT_ALARM_VOLUME WATCH_BUZZER_VOLUME_LOUD
 
 /* Set the timeout before switching back to the main watch face
@@ -78,7 +83,7 @@ const watch_face_t watch_faces[] = {
  * 2: 5 minutes
  * 3: 30 minutes
  */
-#define MOVEMENT_DEFAULT_TIMEOUT_INTERVAL 0
+#define MOVEMENT_DEFAULT_TIMEOUT_INTERVAL 2
 
 /* Set the timeout before switching to low energy mode
  * Valid values are:
