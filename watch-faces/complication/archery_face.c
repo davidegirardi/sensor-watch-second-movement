@@ -58,6 +58,15 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
     div_t result;
     switch (state->mode) {
         case archery_prepare:
+            // Semi-duplicated code but it's probably more energy efficient
+            if (state->target_ts <= state->now_ts)
+                delta = 0;
+            else
+                delta = state->target_ts - state->now_ts;
+            result = div(delta, 60);
+            state->seconds = result.rem;
+            sprintf(buf, "rdy %02d", state->seconds);
+            break;
         case archery_running:
             if (state->target_ts <= state->now_ts)
                 delta = 0;
