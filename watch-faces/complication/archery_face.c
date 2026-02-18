@@ -36,18 +36,6 @@ static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C7, 50, 0};
 static const int8_t _sound_seq_30s[] = {BUZZER_NOTE_C6, 1, BUZZER_NOTE_REST, 2, -2, 3, 0};
 static const int8_t _sound_seq_end[] = {BUZZER_NOTE_C7, 40, BUZZER_NOTE_REST, 40, -2, 2, 0};
 
-static inline void load_countdown(archery_state_t *state) {
-    /* Load set countdown time */
-    state->minutes = state->set_minutes;
-    state->seconds = state->set_seconds;
-}
-
-static inline void store_countdown(archery_state_t *state) {
-    /* Store set countdown time */
-    state->set_minutes = state->minutes;
-    state->set_seconds = state->seconds;
-}
-
 static inline void button_beep() {
     // play a beep as confirmation for a button press (if applicable)
     if (movement_button_should_sound()) watch_buzzer_play_note_with_volume(BUZZER_NOTE_C8, 20, movement_button_volume());
@@ -62,10 +50,6 @@ static void schedule_countdown(archery_state_t *state) {
     state->now_ts = new_now;
     watch_date_time_t target_dt = watch_utility_date_time_from_unix_time(state->target_ts, movement_get_current_timezone_offset());
     movement_schedule_background_task_for_face(state->watch_face_index, target_dt);
-}
-
-static void start(archery_state_t *state) {
-    schedule_countdown(state);
 }
 
 static void draw(archery_state_t *state, uint8_t subsecond) {
@@ -112,8 +96,9 @@ static void pause(archery_state_t *state) {
 
 static void reset(archery_state_t *state) {
     state->mode = archery_reset;
+    state->minutes = state->round == wa_indoor ? INDOOR_RUN_MINUTES : OUTDOOR_RUN_MINUTES;
+    state->seconds = 0;
     movement_cancel_background_task_for_face(state->watch_face_index);
-    load_countdown(state);
 }
 
 static void manage_stages(archery_state_t *state) {
@@ -137,9 +122,9 @@ void archery_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         memset(*context_ptr, 0, sizeof(archery_state_t));
         state->round = wa_indoor;
         state->minutes = INDOOR_RUN_MINUTES;
+        state->set_minutes = INDOOR_RUN_MINUTES;
         state->mode = archery_reset;
         state->watch_face_index = watch_face_index;
-        store_countdown(state);
     }
 }
 
@@ -189,12 +174,12 @@ bool archery_face_loop(movement_event_t event, void *context) {
                     state->seconds = 10;
                     watch_buzzer_play_sequence((int8_t *)_sound_seq_prepare, NULL);
                     state->mode = archery_prepare;
-                    start(state);
+                    schedule_countdown(state);
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
                     break;
                 case archery_paused:
                     state->mode = state->pre_pause_mode;
-                    start(state);
+                    schedule_countdown(state);
                     button_beep();
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
                     break;
@@ -206,6 +191,7 @@ bool archery_face_loop(movement_event_t event, void *context) {
             switch (state->mode) {
                 case archery_prepare:
                 case archery_running:
+                case archery_paused:
                     break;
                 case archery_reset:
                     if (state->round == wa_indoor) {
@@ -215,9 +201,6 @@ bool archery_face_loop(movement_event_t event, void *context) {
                         state->round = wa_indoor;
                         state->minutes = INDOOR_RUN_MINUTES;
                     }
-                    break;
-                case archery_paused:
-                    reset(state);
                     break;
             }
             break;
