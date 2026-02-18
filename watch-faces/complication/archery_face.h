@@ -36,11 +36,15 @@
 // TODO: base on countdown_face as first step instead
 
 typedef enum {
+    wa_indoor,
+    wa_outdoor,
+} archery_round_t;
+
+typedef enum {
     archery_paused,
     archery_prepare,
     archery_running,
-    archery_setting,
-    archery_reset
+    archery_reset,
 } archery_mode_t;
 
 typedef struct {
@@ -50,9 +54,9 @@ typedef struct {
     uint8_t seconds;
     uint8_t set_minutes;
     uint8_t set_seconds;
-    uint8_t selection;
     archery_mode_t mode;
-    archery_mode_t prev_mode;
+    archery_mode_t pre_pause_mode;
+    archery_round_t round;
     uint8_t watch_face_index;
 } archery_state_t;
 

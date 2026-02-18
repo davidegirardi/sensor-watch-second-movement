@@ -27,9 +27,9 @@
 #include "watch_utility.h"
 #include "archery_face.h"
 
-#define WAIT_TIME_SECONDS 10
-#define INDOOR_RUN_MINUTES 2
-#define OUTDOOR_RUN_MINUTES 4
+static const int8_t WAIT_TIME_SECONDS = 10;
+static const int8_t INDOOR_RUN_MINUTES = 2;
+static const int8_t OUTDOOR_RUN_MINUTES = 4;
 
 static const int8_t _sound_seq_prepare[] = {BUZZER_NOTE_C6, 40, BUZZER_NOTE_REST, 40, -2, 1, 0};
 static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C7, 50, 0};
@@ -90,23 +90,13 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
             watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
             sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
             break;
-        case archery_setting:
-            sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
-            if (subsecond % 2) {
-                switch(state->selection) {
-                    case 0:
-                        buf[0] = buf[1] = ' ';
-                        break;
-                    case 1:
-                        buf[2] = buf[3] = ' ';
-                        break;
-                    case 2:
-                        buf[4] = buf[5] = ' ';
-                        break;
-                    default:
-                        break;
-                }
-            }
+    }
+    switch (state->round) {
+        case wa_indoor:
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, "1n");
+            break;
+        case wa_outdoor:
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, "ou");
             break;
     }
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -114,7 +104,7 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
 }
 
 static void pause(archery_state_t *state) {
-    state->prev_mode = state->mode;
+    state->pre_pause_mode = state->mode;
     state->mode = archery_paused;
     movement_cancel_background_task_for_face(state->watch_face_index);
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
@@ -128,7 +118,7 @@ static void reset(archery_state_t *state) {
 
 static void manage_stages(archery_state_t *state) {
     if (state->mode == archery_prepare) {
-        state->minutes = INDOOR_RUN_MINUTES;
+        state->minutes = state->round == wa_indoor ? INDOOR_RUN_MINUTES : OUTDOOR_RUN_MINUTES;
         state->seconds = 0;
         watch_buzzer_play_sequence((int8_t *)_sound_seq_start, NULL);
         state->mode = archery_running;
@@ -145,6 +135,7 @@ void archery_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         *context_ptr = malloc(sizeof(archery_state_t));
         archery_state_t *state = (archery_state_t *)*context_ptr;
         memset(*context_ptr, 0, sizeof(archery_state_t));
+        state->round = wa_indoor;
         state->minutes = INDOOR_RUN_MINUTES;
         state->mode = archery_reset;
         state->watch_face_index = watch_face_index;
@@ -202,19 +193,33 @@ bool archery_face_loop(movement_event_t event, void *context) {
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
                     break;
                 case archery_paused:
-                    state->mode = state->prev_mode;
+                    state->mode = state->pre_pause_mode;
                     start(state);
                     button_beep();
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
                     break;
-                case archery_setting:
-                    //settings_increment(state);
-                    break;
             }
             draw(state, event.subsecond);
             break;
-        case EVENT_ALARM_LONG_PRESS:
+        case EVENT_LIGHT_LONG_PRESS:
             // Just in case you have need for another button.
+            switch (state->mode) {
+                case archery_prepare:
+                case archery_running:
+                    break;
+                case archery_reset:
+                    if (state->round == wa_indoor) {
+                        state->round = wa_outdoor;
+                        state->minutes = OUTDOOR_RUN_MINUTES;
+                    } else {
+                        state->round = wa_indoor;
+                        state->minutes = INDOOR_RUN_MINUTES;
+                    }
+                    break;
+                case archery_paused:
+                    reset(state);
+                    break;
+            }
             break;
         case EVENT_BACKGROUND_TASK:
             manage_stages(state);
