@@ -226,15 +226,14 @@ bool archery_face_loop(movement_event_t event, void *context) {
             manage_stages(state);
             break;
         case EVENT_TIMEOUT:
-            // Your watch face will receive this event after a period of inactivity. If it makes sense to resign,
-            // you may uncomment this line to move back to the first watch face in the list:
-            // movement_move_to_face(0);
+            // Do not get back to face 0 on timeout but return on low energy below
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             // If you did not resign in EVENT_TIMEOUT, you can use this event to update the display once a minute.
             // Avoid displaying fast-updating values like seconds, since the display won't update again for 60 seconds.
             // You should also consider starting the tick animation, to show the wearer that this is sleep mode:
             // watch_start_sleep_animation(500);
+            movement_move_to_face(0);
             break;
         default:
             // Movement's default loop handler will step in for any cases you don't handle above:
