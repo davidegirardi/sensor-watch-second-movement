@@ -81,7 +81,11 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
         case archery_reset:
         case archery_paused:
             watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
-            sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
+            if (state->pre_pause_mode == archery_prepare) {
+                sprintf(buf, "rdy %02d", state->seconds);
+            } else {
+                sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
+            }
             break;
     }
     switch (state->round) {
