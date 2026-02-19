@@ -30,11 +30,11 @@
 const watch_face_t watch_faces[] = {
     clock_face,
     timer_face,
-    interval_face,
     fast_stopwatch_face,
-    tally_face,
     advanced_alarm_face,
     sunrise_sunset_face,
+    // archery_face,
+    tally_face,
     pulsometer_face,
     probability_face,
     days_since_face,
