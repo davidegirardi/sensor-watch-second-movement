@@ -176,6 +176,7 @@ bool archery_face_loop(movement_event_t event, void *context) {
                 reset(state);
                 button_beep();
             }
+            draw(state, event.subsecond);
             break;
         case EVENT_ALARM_BUTTON_DOWN:
             switch (state->mode) {
@@ -219,6 +220,7 @@ bool archery_face_loop(movement_event_t event, void *context) {
                     button_beep();
                     break;
             }
+            draw(state, event.subsecond);
             break;
         case EVENT_BACKGROUND_TASK:
             manage_stages(state);
