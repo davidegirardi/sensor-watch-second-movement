@@ -214,6 +214,7 @@ bool archery_face_loop(movement_event_t event, void *context) {
                         state->round = wa_indoor;
                         state->minutes = INDOOR_RUN_MINUTES;
                     }
+                    button_beep();
                     break;
             }
             break;
