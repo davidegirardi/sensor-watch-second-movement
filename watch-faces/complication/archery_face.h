@@ -29,12 +29,19 @@
 /*
  * WORLD ARCHERY TARGET ROUNDS FACE
  *
- * Timing for world archery target rounds with 2 auditory signals, 10 seconds
- * preparation and then a countdown for the round itself.
+ * Simulate the timing of World Archery competitions. There are two modes:
+ * indoor and outdoor.
+ *
+ * Indoor rounds last 2 minutes and outdoor ones last 4 minutes. You can switch
+ * mode by long pressing the light button.
+ *
+ * When starting the timer, the watch will beep 2 times, count down from 10
+ * seconds to 0 for the preparation phase, beep once and then start the 2 or 4
+ * minutes countdown. When the countdown reaches 0 the watch will beep 3 times.
  *
  * Long press light button to switch the configuration between 2 minutes for
  * indoor, reflected by "in" in the top right corner, and 4 minutes for
- * outdoors, indicated by "ou" insted.
+ * outdoors, indicated by "ou" instead.
  *
  * Start the countdown by pressing the alarm button. The watch will mimic the
  * behavior you would expect in a competition, with the extra possibility of
@@ -45,7 +52,7 @@
  * - 3 final signals indicate a timeout
  *
  * Pressing the alarm button while the timer is running will pause the
- * countdown (during the prepration too). You can reset the timer by pressing
+ * countdown (during the preparation too). You can reset the timer by pressing
  * the light button.
  *
  * Heavily based on the countdown face
