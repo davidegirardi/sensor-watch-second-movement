@@ -47,6 +47,8 @@
  * Pressing the alarm button while the timer is running will pause the
  * countdown (during the prepration too). You can reset the timer by pressing
  * the light button.
+ *
+ * Heavily based on the countdown face
  */
 
 typedef enum {
