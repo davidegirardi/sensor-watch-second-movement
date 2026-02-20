@@ -38,7 +38,9 @@ static const int8_t _sound_seq_end[] = {BUZZER_NOTE_C7, 40, BUZZER_NOTE_REST, 40
 
 static inline void button_beep() {
     // play a beep as confirmation for a button press (if applicable)
-    if (movement_button_should_sound()) watch_buzzer_play_note_with_volume(BUZZER_NOTE_C8, 20, movement_button_volume());
+    if (movement_button_should_sound()) {
+        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C8, 20, movement_button_volume());
+    }
 }
 
 static void schedule_countdown(archery_state_t *state) {
@@ -169,9 +171,6 @@ bool archery_face_loop(movement_event_t event, void *context) {
             draw(state, event.subsecond);
             break;
         case EVENT_LIGHT_BUTTON_UP:
-            // You can use the Light button for your own purposes. Note that by default, Movement will also
-            // illuminate the LED in response to EVENT_LIGHT_BUTTON_DOWN; to suppress that behavior, add an
-            // empty case for EVENT_LIGHT_BUTTON_DOWN.
             if (state->mode == archery_paused) {
                 reset(state);
                 button_beep();
@@ -203,7 +202,6 @@ bool archery_face_loop(movement_event_t event, void *context) {
             draw(state, event.subsecond);
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            // Just in case you have need for another button.
             switch (state->mode) {
                 case archery_prepare:
                 case archery_running:
@@ -229,18 +227,9 @@ bool archery_face_loop(movement_event_t event, void *context) {
             // Do not get back to face 0 on timeout but return on low energy below
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            // If you did not resign in EVENT_TIMEOUT, you can use this event to update the display once a minute.
-            // Avoid displaying fast-updating values like seconds, since the display won't update again for 60 seconds.
-            // You should also consider starting the tick animation, to show the wearer that this is sleep mode:
-            // watch_start_sleep_animation(500);
             movement_move_to_face(0);
             break;
         default:
-            // Movement's default loop handler will step in for any cases you don't handle above:
-            // * EVENT_LIGHT_BUTTON_DOWN lights the LED
-            // * EVENT_MODE_BUTTON_UP moves to the next watch face in the list
-            // * EVENT_MODE_LONG_PRESS returns to the first watch face (or skips to the secondary watch face, if configured)
-            // You can override any of these behaviors by adding a case for these events to this switch statement.
             return movement_default_loop_handler(event);
     }
 
@@ -250,7 +239,4 @@ bool archery_face_loop(movement_event_t event, void *context) {
 
 void archery_face_resign(void *context) {
     (void) context;
-
-    // handle any cleanup before your watch face goes off-screen.
 }
-
