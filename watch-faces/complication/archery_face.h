@@ -49,6 +49,11 @@
  * the light button.
  *
  * Heavily based on the countdown face
+ *
+ * The indicators for the classic display are:
+ * - I for indoor rounds
+ * - O for outdoor
+ * - rd for the preparation time
  */
 
 typedef enum {

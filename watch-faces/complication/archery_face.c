@@ -55,7 +55,7 @@ static void schedule_countdown(archery_state_t *state) {
 }
 
 static void draw(archery_state_t *state, uint8_t subsecond) {
-    char buf[16];
+    char buf[2][7];
     uint32_t delta;
     div_t result;
     switch (state->mode) {
@@ -67,7 +67,8 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
                 delta = state->target_ts - state->now_ts;
             result = div(delta, 60);
             state->seconds = result.rem;
-            sprintf(buf, "rdy %02d", state->seconds);
+            sprintf(buf[0], "rdy %02d", state->seconds);
+            sprintf(buf[1], "rd  %02d", state->seconds);
             break;
         case archery_running:
             if (state->target_ts <= state->now_ts)
@@ -78,29 +79,33 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
             state->seconds = result.rem;
             result = div(result.quot, 60);
             state->minutes = result.rem;
-            sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
+            sprintf(buf[0], "  %02d%02d", state->minutes, state->seconds);
+            sprintf(buf[1], "  %02d%02d", state->minutes, state->seconds);
             break;
         case archery_reset:
-            sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
+            sprintf(buf[0], "  %02d%02d", state->minutes, state->seconds);
+            sprintf(buf[1], "  %02d%02d", state->minutes, state->seconds);
             break;
         case archery_paused:
             watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
             if (state->before_pause_mode == archery_prepare) {
-                sprintf(buf, "rdy %02d", state->seconds);
+                sprintf(buf[0], "rdy %02d", state->seconds);
+                sprintf(buf[1], "rd  %02d", state->seconds);
             } else {
-                sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
+                sprintf(buf[0], "  %02d%02d", state->minutes, state->seconds);
+                sprintf(buf[1], "  %02d%02d", state->minutes, state->seconds);
             }
             break;
     }
     switch (state->round) {
         case wa_indoor:
-            watch_display_text(WATCH_POSITION_TOP_RIGHT, "1n");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "1n", " I");
             break;
         case wa_outdoor:
-            watch_display_text(WATCH_POSITION_TOP_RIGHT, "ou");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "Ou", " O");
             break;
     }
-    watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf[0], buf[1]);
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
 }
 
