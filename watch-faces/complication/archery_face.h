@@ -27,13 +27,27 @@
 #include "movement.h"
 
 /*
- * A DESCRIPTION OF YOUR WATCH FACE
+ * WORLD ARCHERY TARGET ROUNDS FACE
  *
- * and a description of how use it
+ * Timing for world archery target rounds with 2 auditory signals, 10 seconds
+ * preparation and then a countdown for the round itself.
  *
+ * Long press light button to switch the configuration between 2 minutes for
+ * indoor, reflected by "in" in the top right corner, and 4 minutes for
+ * outdoors, indicated by "ou" insted.
+ *
+ * Start the countdown by pressing the alarm button. The watch will mimic the
+ * behavior you would expect in a competition, with the extra possibility of
+ * pausing whenever you want. Stages:
+ * - 2 audible signals will ring at the start of the 10 seconds preparation
+ *   time (the watch will show "rdy")
+ * - 1 signal will indicate that round start
+ * - 3 final signals indicate a timeout
+ *
+ * Pressing the alarm button while the timer is running will pause the
+ * countdown (during the prepration too). You can reset the timer by pressing
+ * the light button.
  */
-
-// TODO: base on countdown_face as first step instead
 
 typedef enum {
     wa_indoor,
