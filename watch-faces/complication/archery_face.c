@@ -83,7 +83,7 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
             break;
         case archery_paused:
             watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
-            if (state->pre_pause_mode == archery_prepare) {
+            if (state->before_pause_mode == archery_prepare) {
                 sprintf(buf, "rdy %02d", state->seconds);
             } else {
                 sprintf(buf, "  %02d%02d", state->minutes, state->seconds);
@@ -103,7 +103,7 @@ static void draw(archery_state_t *state, uint8_t subsecond) {
 }
 
 static void pause(archery_state_t *state) {
-    state->pre_pause_mode = state->mode;
+    state->before_pause_mode = state->mode;
     state->mode = archery_paused;
     movement_cancel_background_task_for_face(state->watch_face_index);
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
@@ -194,7 +194,7 @@ bool archery_face_loop(movement_event_t event, void *context) {
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
                     break;
                 case archery_paused:
-                    state->mode = state->pre_pause_mode;
+                    state->mode = state->before_pause_mode;
                     schedule_countdown(state);
                     button_beep();
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);

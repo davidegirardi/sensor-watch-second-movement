@@ -69,7 +69,7 @@ typedef struct {
     uint8_t set_minutes;
     uint8_t set_seconds;
     archery_mode_t mode;
-    archery_mode_t pre_pause_mode;
+    archery_mode_t before_pause_mode;
     archery_round_t round;
     uint8_t watch_face_index;
 } archery_state_t;
