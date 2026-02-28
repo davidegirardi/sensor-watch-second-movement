@@ -106,6 +106,7 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             _abort_quick_ticks();
             break;
         case EVENT_LIGHT_BUTTON_DOWN:

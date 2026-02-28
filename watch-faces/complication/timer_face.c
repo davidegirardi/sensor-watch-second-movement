@@ -337,6 +337,7 @@ bool timer_face_loop(movement_event_t event, void *context) {
             _draw(state, event.subsecond);
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             _abort_quick_cycle(state);
             break;
         case EVENT_MODE_BUTTON_DOWN:

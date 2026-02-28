@@ -555,6 +555,7 @@ bool lander_face_loop(movement_event_t event, void *context) {
             else watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
             break;
         case EVENT_LIGHT_LONG_UP:
+        case EVENT_LIGHT_REALLY_LONG_UP:
             if ( ( state->mode == MODE_WAITING_TO_START ) && ( state->legend_counter > 0 ) ) {
                 if ( state->legend_counter > 9 ) sprintf (buf,"EArt%2d", state->legend_counter );
                 else sprintf (buf,"EArth%d", state->legend_counter );
