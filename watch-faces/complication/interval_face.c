@@ -615,6 +615,7 @@ bool interval_face_loop(movement_event_t event, void *context) {
         _face_draw(state, event.subsecond);
         break;
     case EVENT_ALARM_LONG_UP:
+    case EVENT_ALARM_REALLY_LONG_UP:
         _abort_quick_ticks();
         break;
     case EVENT_BACKGROUND_TASK:

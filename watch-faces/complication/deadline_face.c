@@ -452,6 +452,7 @@ static bool _deadline_settings_loop(movement_event_t event, void *context)
             _change_tick_freq(8, state);
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             _change_tick_freq(4, state);
             break;
         case EVENT_LIGHT_LONG_PRESS:
