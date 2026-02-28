@@ -86,7 +86,7 @@ static void _display_elapsed(fast_stopwatch_state_t *state, uint32_t ticks) {
 
     state->old_display.seconds = seconds;
 
-    sprintf(buf, "%02lu", seconds % 60);
+    sprintf(buf, "%02u", seconds % 60);
     watch_display_text(WATCH_POSITION_MINUTES, buf);
 
     uint32_t minutes = seconds / 60;
@@ -97,7 +97,7 @@ static void _display_elapsed(fast_stopwatch_state_t *state, uint32_t ticks) {
 
     state->old_display.minutes = minutes;
 
-    sprintf(buf, "%02lu", minutes % 60);
+    sprintf(buf, "%02u", minutes % 60);
     watch_display_text(WATCH_POSITION_HOURS, buf);
 
     uint32_t hours = (minutes / 60) % 24;
@@ -109,7 +109,7 @@ static void _display_elapsed(fast_stopwatch_state_t *state, uint32_t ticks) {
     state->old_display.hours = hours;
 
     if (hours) {
-        sprintf(buf, "%2lu", hours);
+        sprintf(buf, "%2u", hours);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     } else {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
