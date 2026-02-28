@@ -445,14 +445,14 @@ static void _display_screen(periodic_table_state_t *state, bool should_sound){
         _display_name(state);
         break;
     }
-    if (should_sound) watch_buzzer_play_note(BUZZER_NOTE_C7, 50);
+    if (should_sound) watch_buzzer_play_note(BUZZER_NOTE_C7, 30);
 }
 
 static void _handle_forward(periodic_table_state_t *state, bool should_sound){
     state->atomic_num = (state->atomic_num % MAX_ELEMENT) + 1; // Wraps back to 1
     state->mode = SCREEN_ELEMENT;
     _display_screen(state, false);
-    if (should_sound) watch_buzzer_play_note(BUZZER_NOTE_C7, 50);
+    if (should_sound) watch_buzzer_play_note(BUZZER_NOTE_C7, 30);
 }
 
 static void _handle_backward(periodic_table_state_t *state, bool should_sound){

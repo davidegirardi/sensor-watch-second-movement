@@ -389,7 +389,7 @@ bool kitchen_conversions_face_loop(movement_event_t event, void *context)
 
             // Play boop
             if (movement_button_should_sound())
-                watch_buzzer_play_note(BUZZER_NOTE_C7, 50);
+                watch_buzzer_play_note(BUZZER_NOTE_C7, 30);
         }
 
         display(state, event.subsecond);
