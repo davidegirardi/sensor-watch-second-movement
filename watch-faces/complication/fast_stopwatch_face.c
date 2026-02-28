@@ -188,6 +188,9 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     state->start_counter = counter;
                     movement_request_tick_frequency(get_refresh_rate(state));
                     return;
+                case EVENT_LIGHT_BUTTON_DOWN:
+                    movement_illuminate_led();
+                    return;
                 case EVENT_LIGHT_LONG_PRESS:
                     state->slow_refresh = !state->slow_refresh;
                     return;
@@ -206,6 +209,7 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     state->status = SW_STATUS_RUNNING_LAPPING;
                     state->lap_counter = counter;
                     movement_request_tick_frequency(get_refresh_rate(state));
+                    movement_illuminate_led();
                     return;
                 default:
                     return;
@@ -222,6 +226,7 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     state->status = SW_STATUS_RUNNING;
                     state->lap_counter = counter;
                     movement_request_tick_frequency(get_refresh_rate(state));
+                    movement_illuminate_led();
                     return;
                 case EVENT_LIGHT_LONG_PRESS:
                     state->status = SW_STATUS_RUNNING;
@@ -242,6 +247,7 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     return;
                 case EVENT_LIGHT_BUTTON_DOWN:
                     state->status = SW_STATUS_STOPPED;
+                    movement_illuminate_led();
                     return;
                 default:
                     return;
@@ -256,6 +262,7 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     return;
                 case EVENT_LIGHT_BUTTON_DOWN:
                     state->status = SW_STATUS_IDLE;
+                    movement_illuminate_led();
                     return;
                 default:
                     return;

@@ -191,14 +191,11 @@ bool pulsometer_face_loop(movement_event_t event,void *context) {
         case EVENT_TICK:
             pulsometer_measure(pulsometer);
             break;
-        case EVENT_LIGHT_BUTTON_UP:
+        case EVENT_LIGHT_LONG_PRESS:
             pulsometer_cycle_calibration(pulsometer, 1);
             break;
-        case EVENT_LIGHT_LONG_UP:
+        case EVENT_LIGHT_REALLY_LONG_PRESS:
             pulsometer_cycle_calibration(pulsometer, PULSOMETER_FACE_CALIBRATION_INCREMENT);
-            break;
-        case EVENT_LIGHT_BUTTON_DOWN:
-            // Inhibit the LED
             break;
         case EVENT_TIMEOUT:
             movement_move_to_face(0);

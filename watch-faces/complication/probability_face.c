@@ -267,7 +267,9 @@ bool probability_face_loop(movement_event_t event, void *context)
         }
         break;
     case EVENT_LIGHT_BUTTON_DOWN:
-        // Cycle through die types
+        movement_illuminate_led();
+        break;
+    case EVENT_LIGHT_LONG_PRESS:
         cycle_dice_type(state);
         display_dice_roll(state);
         break;
