@@ -44,6 +44,7 @@
 typedef struct {
     // Anything you need to keep track of, put it here!
     int16_t simple_tally_counter;
+    bool big_increment;
 } simple_tally_state_t;
 
 void simple_tally_face_setup(uint8_t watch_face_index, void ** context_ptr);

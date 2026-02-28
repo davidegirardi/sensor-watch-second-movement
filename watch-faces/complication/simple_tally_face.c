@@ -62,12 +62,20 @@ void simple_tally_face_activate(void *context) {
 }
 
 static void simple_tally_face_increment(simple_tally_state_t *state) {
-        // Do not overflow nor loop back to zero
-        if (state->simple_tally_counter < SIMPLE_TALLY_FACE_MAX){
-            state->simple_tally_counter++;
-        }
-        _init_val = false;
-        draw(state);
+    uint8_t increment = 1;
+    // This will trigger on a long press so the tally will already have
+    // incremented by 1, we add 9 more to get to +10
+    if (state->big_increment) {
+        increment = 9;
+        state->big_increment = false;
+    }
+    // Do not overflow nor loop back to zero
+    if (state->simple_tally_counter < SIMPLE_TALLY_FACE_MAX){
+        state->simple_tally_counter += increment;
+    }
+    _init_val = false;
+    state->big_increment = false;
+    draw(state);
 }
 
 static void simple_tally_face_decrement(simple_tally_state_t *state) {
@@ -110,6 +118,8 @@ bool simple_tally_face_loop(movement_event_t event, void *context) {
             button_beep();
             draw(state);
             break;
+        case EVENT_ALARM_LONG_PRESS:
+            state->big_increment = true;
         case EVENT_ALARM_BUTTON_DOWN:
             // Just in case you have need for another button.
             simple_tally_face_increment(state);
