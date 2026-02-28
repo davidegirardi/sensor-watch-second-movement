@@ -56,4 +56,5 @@ SRCS += \
   ./watch-faces/complication/simon_face.c \
   ./watch-faces/complication/ping_face.c \
   ./watch-faces/complication/archery_face.c \
+  ./watch-faces/complication/simple_tally_face.c \
 # New watch faces go above this line.
