@@ -186,6 +186,7 @@ bool pulsometer_face_loop(movement_event_t event,void *context) {
             break;
         case EVENT_ALARM_BUTTON_UP:
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             pulsometer_stop_measurement(pulsometer);
             break;
         case EVENT_TICK:
