@@ -542,7 +542,7 @@ bool sunrise_sunset_face_loop(movement_event_t event, void *context) {
                 _sunrise_sunset_face_update(state);
             }
             break;
-        case EVENT_ALARM_BUTTON_UP:
+        case EVENT_ALARM_BUTTON_DOWN:
             if (state->page) {
                 _sunrise_sunset_face_advance_digit(state);
                 _sunrise_sunset_face_update_settings_display(event, context);
