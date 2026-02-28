@@ -216,6 +216,9 @@ void probability_face_setup(uint8_t watch_face_index, void **context_ptr)
     {
         *context_ptr = malloc(sizeof(probability_state_t));
         memset(*context_ptr, 0, sizeof(probability_state_t));
+        probability_state_t *state = (probability_state_t *)*context_ptr;
+        state->dice_sides = DEFAULT_DICE_SIDES;
+        state->rolled_value = 0;
     }
 // Emulator only: Seed random number generator
 #if __EMSCRIPTEN__
@@ -227,7 +230,6 @@ void probability_face_activate(void *context)
 {
     probability_state_t *state = (probability_state_t *)context;
 
-    state->dice_sides = DEFAULT_DICE_SIDES;
     state->rolled_value = 0;
 
     // Display face identifier
@@ -267,7 +269,9 @@ bool probability_face_loop(movement_event_t event, void *context)
         }
         break;
     case EVENT_LIGHT_BUTTON_DOWN:
-        // Cycle through die types
+        movement_illuminate_led();
+        break;
+    case EVENT_LIGHT_LONG_PRESS:
         cycle_dice_type(state);
         display_dice_roll(state);
         break;
