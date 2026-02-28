@@ -341,7 +341,7 @@ static inline void _beep()
 {
     if (!movement_button_should_sound())
         return;
-    watch_buzzer_play_note(BUZZER_NOTE_C7, 50);
+    watch_buzzer_play_note(BUZZER_NOTE_C7, 30);
 }
 
 /* Print lis2dw status to console. */
