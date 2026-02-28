@@ -93,13 +93,14 @@ bool simple_tally_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             // If needed, update your display here.
             break;
-        case EVENT_LIGHT_BUTTON_UP:
+        case EVENT_LIGHT_BUTTON_DOWN:
             // You can use the Light button for your own purposes. Note that by default, Movement will also
             // illuminate the LED in response to EVENT_LIGHT_BUTTON_DOWN; to suppress that behavior, add an
             // empty case for EVENT_LIGHT_BUTTON_DOWN.
             simple_tally_face_decrement(state);
             button_beep();
             draw(state);
+            movement_illuminate_led();
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (!_init_val) {
@@ -109,7 +110,7 @@ bool simple_tally_face_loop(movement_event_t event, void *context) {
             button_beep();
             draw(state);
             break;
-        case EVENT_ALARM_BUTTON_UP:
+        case EVENT_ALARM_BUTTON_DOWN:
             // Just in case you have need for another button.
             simple_tally_face_increment(state);
             button_beep();
