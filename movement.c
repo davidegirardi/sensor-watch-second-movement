@@ -63,11 +63,11 @@ watch_date_time_t scheduled_tasks[MOVEMENT_NUM_FACES];
 const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 600, 3600, 7200, 21600, 43200, 86400, 604800};
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 
-const uint32_t _movement_mode_button_events_mask = 0b11111 << EVENT_MODE_BUTTON_DOWN;
-const uint32_t _movement_light_button_events_mask = 0b11111 << EVENT_LIGHT_BUTTON_DOWN;
-const uint32_t _movement_alarm_button_events_mask = 0b11111 << EVENT_ALARM_BUTTON_DOWN;
-const uint32_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask;
-
+const uint64_t _movement_mode_button_events_mask = 0b111111 << EVENT_MODE_BUTTON_DOWN;
+const uint64_t _movement_light_button_events_mask = 0b111111 << EVENT_LIGHT_BUTTON_DOWN;
+const uint64_t _movement_alarm_button_events_mask = 0b111111 << EVENT_ALARM_BUTTON_DOWN;
+const uint64_t _movement_start_button_events_mask = 0b111111 << EVENT_START_BUTTON_DOWN;
+const uint64_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask | _movement_start_button_events_mask;
 typedef struct {
     movement_event_type_t down_event;
     watch_cb_t cb_longpress;
@@ -83,7 +83,7 @@ typedef struct {
    The interrupt writes state changes here, and it will be acted upon on the next app_loop invokation.
 */
 typedef struct {
-    volatile uint32_t pending_events;
+    volatile uint64_t pending_events;
     volatile bool turn_led_off;
     volatile bool has_pending_sequence;
     volatile bool enter_sleep_mode;
@@ -101,9 +101,10 @@ typedef struct {
     movement_button_t mode_button;
     movement_button_t light_button;
     movement_button_t alarm_button;
+    movement_button_t start_button;
 
     // button events that will not be passed to the current face loop, but will instead passed directly to the default loop handler.
-    volatile uint32_t passthrough_events;
+    volatile uint64_t passthrough_events;
 } movement_volatile_state_t;
 
 movement_volatile_state_t movement_volatile_state;
@@ -131,12 +132,17 @@ int8_t _movement_dst_offset_cache[NUM_ZONE_NAMES] = {0};
 void cb_mode_btn_interrupt(void);
 void cb_light_btn_interrupt(void);
 void cb_alarm_btn_interrupt(void);
+void cb_start_btn_interrupt(void);
+void cb_mode_btn_extwake(void);
+void cb_light_btn_extwake(void);
 void cb_alarm_btn_extwake(void);
+void cb_start_btn_extwake(void);
 void cb_minute_alarm_fired(void);
 void cb_tick(void);
 void cb_mode_btn_timeout_interrupt(void);
 void cb_light_btn_timeout_interrupt(void);
 void cb_alarm_btn_timeout_interrupt(void);
+void cb_start_btn_timeout_interrupt(void);
 void cb_led_timeout_interrupt(void);
 void cb_resign_timeout_interrupt(void);
 void cb_sleep_timeout_interrupt(void);
@@ -284,45 +290,94 @@ static void _movement_renew_top_of_minute_alarm(void) {
 }
 
 static uint32_t _movement_get_accelerometer_events() {
-    uint32_t accelerometer_events = 0;
-
-    uint8_t int_src = lis2dw_get_interrupt_source();
-
-    if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
-        accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
-        printf("Double tap!\r\n");
+    uint64_t accelerometer_events = 0;
+#ifdef I2C_SERCOM
+    if (movement_state.has_lis2dw) {
+        uint8_t int_src = lis2dw_get_interrupt_source();
+#if PRINT_LIS_EVENTS
+        printf("_movement_get_accelerometer_events\r\n");
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_SLEEP_CHANGE_IA)  printf("Sleep Change IA\r\n");
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_6D_IA)            printf("6D IA\r\n");
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP)       printf("Single Tap\r\n");
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP)       printf("Double Tap\r\n");
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_WU_IA)            printf("Wake Up\r\n");
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_FF_IA)            printf("Free Fall\r\n");
+#endif
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
+            accelerometer_events |= 1ULL << EVENT_DOUBLE_TAP;
+            printf("Double tap!\r\n");
+        }
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
+            accelerometer_events |= 1 << EVENT_SINGLE_TAP;
+            printf("Single tap!\r\n");
+        }
     }
+    else if (movement_state.has_lis2dux) {
+        lis2dux12_all_sources_t int_src;
+        lis2dux12_all_sources_get(&dev_ctx, &int_src);
+#if PRINT_LIS_EVENTS
+        printf("_movement_get_accelerometer_events\r\n");
+        if (int_src.drdy)             printf("drdy:             %d\r\n", int_src.drdy);
+        if (int_src.free_fall)       printf("free_fall:        %d\r\n", int_src.free_fall);
+        if (int_src.wake_up)         printf("wake_up:          %d\r\n", int_src.wake_up);
+        if (int_src.wake_up_x)       printf("wake_up_x:        %d\r\n", int_src.wake_up_x);
+        if (int_src.wake_up_y)       printf("wake_up_y:        %d\r\n", int_src.wake_up_y);
+        if (int_src.wake_up_z)       printf("wake_up_z:        %d\r\n", int_src.wake_up_z);
+        if (int_src.single_tap)      printf("single_tap:       %d\r\n", int_src.single_tap);
+        if (int_src.double_tap)      printf("double_tap:       %d\r\n", int_src.double_tap);
+        if (int_src.triple_tap)      printf("triple_tap:       %d\r\n", int_src.triple_tap);
+        if (int_src.six_d)           printf("six_d:            %d\r\n", int_src.six_d);
+        if (int_src.six_d_xl)        printf("six_d_xl:         %d\r\n", int_src.six_d_xl);
+        if (int_src.six_d_xh)        printf("six_d_xh:         %d\r\n", int_src.six_d_xh);
+        if (int_src.six_d_yl)        printf("six_d_yl:         %d\r\n", int_src.six_d_yl);
+        if (int_src.six_d_yh)        printf("six_d_yh:         %d\r\n", int_src.six_d_yh);
+        if (int_src.six_d_zl)        printf("six_d_zl:         %d\r\n", int_src.six_d_zl);
+        if (int_src.six_d_zh)        printf("six_d_zh:         %d\r\n", int_src.six_d_zh);
+        if (int_src.sleep_change)    printf("sleep_change:     %d\r\n", int_src.sleep_change);
+        if (int_src.sleep_state)     printf("sleep_state:      %d\r\n", int_src.sleep_state);
+#endif
+        if (int_src.double_tap) {
+            accelerometer_events |= 1ULL << EVENT_DOUBLE_TAP;
+            printf("Double tap!\r\n");
+        }
 
-    if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
-        accelerometer_events |= 1 << EVENT_SINGLE_TAP;
-        printf("Single tap!\r\n");
+        if (int_src.single_tap) {
+            accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
+            printf("Single tap!\r\n");
+        }
     }
 
     return accelerometer_events;
 }
 
-static void _movement_handle_button_presses(uint32_t pending_events) {
+static void _movement_handle_button_presses(uint64_t pending_events) {
     bool any_up = false;
     bool any_down = false;
     bool any_long = false;
 
-    movement_button_t* buttons[3] = {
+    movement_button_t* buttons[4] = {
         &movement_volatile_state.mode_button,
         &movement_volatile_state.light_button,
-        &movement_volatile_state.alarm_button
+        &movement_volatile_state.alarm_button,
+        &movement_volatile_state.start_button
     };
 
-    uint32_t button_events_masks[3] = {
+    uint64_t button_events_masks[4] = {
         _movement_mode_button_events_mask,
         _movement_light_button_events_mask,
         _movement_alarm_button_events_mask,
+        _movement_start_button_events_mask
     };
 
+#if defined(FORCE_JOLT_LCD_TYPE)
+    for (uint8_t i = 0; i < 4; i++) {  // START button logic only runs on the G-Shock
+#else
     for (uint8_t i = 0; i < 3; i++) {
+#endif
         movement_button_t* button = buttons[i];
 
         // If a button down occurred
-        if (pending_events & (1 << button->down_event)) {
+        if (pending_events & (1ULL << button->down_event)) {
             watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONG_PRESS_TICKS, button->timeout_index);
             any_down = true;
             // this button's events will start getting passed to the face
@@ -330,22 +385,22 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         }
 
         // If a long press occurred
-        if (pending_events & (1 << (button->down_event + 2))) {
+        if (pending_events & (1ULL << (button->down_event + 2))) {
             watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_REALLY_LONG_PRESS_TICKS, button->timeout_index);
             any_long = true;
         }
 
         // If a really long press occurred
-        if (pending_events & (1 << (button->down_event + 4))) {
+        if (pending_events & (1ULL << (button->down_event + 4))) {
             watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_MAX_LONG_PRESS_TICKS, button->timeout_index);
             any_long = true;
         }
 
         // If a button up or button long up occurred
         if (pending_events & (
-            (1 << (button->down_event + 1)) |
-            (1 << (button->down_event + 3))
-            // (1 << (button->down_event + 5))
+            (1ULL << (button->down_event + 1)) |
+            (1ULL << (button->down_event + 3)) |
+            (1ULL << (button->down_event + 5))
         )) {
             // We cancel the timeout if it hasn't fired yet
             watch_rtc_disable_comp_callback_no_schedule(button->timeout_index);
@@ -1000,6 +1055,15 @@ void app_init(void) {
     movement_volatile_state.alarm_button.timeout_index = ALARM_BUTTON_TIMEOUT;
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
+#if defined(FORCE_JOLT_LCD_TYPE)
+    movement_volatile_state.start_button.down_event = EVENT_START_BUTTON_DOWN;
+    movement_volatile_state.start_button.is_down = false;
+    movement_volatile_state.start_button.down_timestamp = 0;
+    movement_volatile_state.start_button.timeout_index = START_BUTTON_TIMEOUT;
+    movement_volatile_state.start_button.cb_longpress = cb_start_btn_timeout_interrupt;
+#endif
+
+    movement_state.is_deep_sleeping = false;
     movement_state.has_thermistor = thermistor_driver_init();
 
     bool settings_file_exists = filesystem_file_exists("settings.u32");
@@ -1116,6 +1180,9 @@ void app_setup(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
+#if defined(FORCE_JOLT_LCD_TYPE)
+        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
+#endif
 
 #ifdef I2C_SERCOM
         static bool lis2dw_checked = false;
@@ -1269,7 +1336,7 @@ bool app_loop(void) {
     bool can_sleep = true;
 
     // Any events that have been added by the various interrupts in between app_loop invokations
-    uint32_t pending_events = movement_volatile_state.pending_events;
+    uint64_t pending_events = movement_volatile_state.pending_events;
     movement_volatile_state.pending_events = 0;
 
     movement_event_t event;
@@ -1298,7 +1365,7 @@ bool app_loop(void) {
 
     // if we have a scheduled background task, handle that here:
     if (
-        (pending_events & (1 << EVENT_TICK))
+        (pending_events & (1ULL << EVENT_TICK))
         && event.subsecond == 0
         && movement_state.has_scheduled_background_task
     ) {
@@ -1306,13 +1373,13 @@ bool app_loop(void) {
     }
 
     // Pop the EVENT_TIMEOUT out of the pending_events so it can be handled separately
-    bool resign_timeout = (pending_events & (1 << EVENT_TIMEOUT)) != 0;
+    bool resign_timeout = (pending_events & (1ULL << EVENT_TIMEOUT)) != 0;
     if (resign_timeout) {
-        pending_events &= ~(1 << EVENT_TIMEOUT);
+        pending_events &= ~(1ULL << EVENT_TIMEOUT);
     }
 
     // Consume all the pending events
-    uint32_t passthrough_pending_events = pending_events & movement_volatile_state.passthrough_events;
+    uint64_t passthrough_pending_events = pending_events & movement_volatile_state.passthrough_events;
     pending_events = pending_events & ~movement_volatile_state.passthrough_events;
 
     movement_event_type_t event_type = 0;
@@ -1360,7 +1427,27 @@ bool app_loop(void) {
         // No need to fire resign and sleep interrupts while in sleep mode
         _movement_disable_inactivity_countdown();
 
-        watch_register_extwake_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, true);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+#if defined(FORCE_JOLT_LCD_TYPE)
+        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_extwake, INTERRUPT_TRIGGER_RISING);
+#endif
+        watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_extwake, INTERRUPT_TRIGGER_RISING);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_extwake, INTERRUPT_TRIGGER_RISING);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, INTERRUPT_TRIGGER_RISING);
+
+#ifdef I2C_SERCOM
+        if (movement_state.counting_steps) {
+            movement_disable_step_count(true);
+        }
+
+        if (movement_state.tap_enabled) {
+            movement_disable_tap_detection_if_available();
+            movement_state.tap_enabled = true; // This is to come back and reset it on wake
+        }
+#endif
 
         // _sleep_mode_app_loop takes over at this point and loops until exit_sleep_mode is set by the extwake handler,
         // or wake is requested using the movement_request_wake function.
@@ -1454,19 +1541,27 @@ static movement_event_type_t _process_button_event(bool pin_level, movement_butt
 void cb_light_btn_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_LIGHT_read();
 
-    movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.light_button);
+    movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.light_button);
 }
 
 void cb_mode_btn_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_MODE_read();
 
-    movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.mode_button);
+    movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.mode_button);
 }
 
 void cb_alarm_btn_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_ALARM_read();
 
-    movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.alarm_button);
+    movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.alarm_button);
+}
+
+void cb_start_btn_interrupt(void) {
+#if defined(FORCE_JOLT_LCD_TYPE)
+    bool pin_level = HAL_GPIO_BTN_START_read();
+
+    movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.start_button);
+#endif
 }
 
 static movement_event_type_t _process_button_longpress_timeout(bool pin_level, movement_button_t* button) {
@@ -1508,21 +1603,30 @@ void cb_light_btn_timeout_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_LIGHT_read();
     movement_button_t* button = &movement_volatile_state.light_button;
 
-    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
+    movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);
 }
 
 void cb_mode_btn_timeout_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_MODE_read();
     movement_button_t* button = &movement_volatile_state.mode_button;
 
-    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
+    movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);
 }
 
 void cb_alarm_btn_timeout_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_ALARM_read();
     movement_button_t* button = &movement_volatile_state.alarm_button;
 
-    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
+    movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);
+}
+
+void cb_start_btn_timeout_interrupt(void) {
+#if defined(FORCE_JOLT_LCD_TYPE)
+    bool pin_level = HAL_GPIO_BTN_START_read();
+    movement_button_t* button = &movement_volatile_state.start_button;
+
+    movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);
+#endif
 }
 
 void cb_led_timeout_interrupt(void) {
@@ -1530,7 +1634,7 @@ void cb_led_timeout_interrupt(void) {
 }
 
 void cb_resign_timeout_interrupt(void) {
-    movement_volatile_state.pending_events |= 1 << EVENT_TIMEOUT;
+    movement_volatile_state.pending_events |= 1ULL << EVENT_TIMEOUT;
 }
 
 void cb_sleep_timeout_interrupt(void) {
@@ -1539,6 +1643,10 @@ void cb_sleep_timeout_interrupt(void) {
 
 void cb_alarm_btn_extwake(void) {
     // wake up!
+    movement_request_wake();
+}
+
+void cb_start_btn_extwake(void) {
     movement_request_wake();
 }
 
@@ -1555,7 +1663,7 @@ void cb_tick(void) {
     uint32_t freq = watch_rtc_get_frequency();
     uint32_t half_freq = freq >> 1;
     uint32_t subsecond_mask = freq - 1;
-    movement_volatile_state.pending_events |= 1 << EVENT_TICK;
+    movement_volatile_state.pending_events |= 1ULL << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
 }
 
