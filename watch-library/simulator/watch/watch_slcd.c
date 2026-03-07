@@ -48,14 +48,23 @@ watch_lcd_type_t watch_get_lcd_type(void) {
 void watch_enable_display(void) {
 #if defined(FORCE_CUSTOM_LCD_TYPE)
     _watch_update_indicator_segments();
+#elif defined(FORCE_GSHOCK_LCD_TYPE)
+    _watch_update_indicator_segments_gshock();
 #endif
 
 #if defined(FORCE_CUSTOM_LCD_TYPE)
     EM_ASM({document.getElementById("custom").style.display = "";});
     EM_ASM({document.getElementById("classic").style.display = "none";});
+    EM_ASM({document.getElementById("gshock").style.display = "none";});
+#elif defined(FORCE_GSHOCK_LCD_TYPE)
+    EM_ASM({document.getElementById("custom").style.display = "none";});
+    EM_ASM({document.getElementById("classic").style.display = "none";});
+    EM_ASM({document.getElementById("gshock").style.display = "";});
+    EM_ASM({ setNewSkin("dw5600"); });
 #else
     EM_ASM({document.getElementById("custom").style.display = "none";});
     EM_ASM({document.getElementById("classic").style.display = "";});
+    EM_ASM({document.getElementById("gshock").style.display = "none";});
 #endif
 
     watch_clear_display();
@@ -65,6 +74,7 @@ void watch_disable_display(void) {
     watch_clear_display();
     EM_ASM({document.getElementById("classic").style.display = "none";});
     EM_ASM({document.getElementById("custom").style.display = "none";});
+    EM_ASM({document.getElementById("gshock").style.display = "none";});
 }
 
 void watch_set_pixel(uint8_t com, uint8_t seg) {
@@ -108,6 +118,12 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
     /// TODO: For #SecondMovement, implement this on simulator
 }
 
+void watch_set_sleep_indicator_if_possible(void) {
+#if defined(FORCE_CUSTOM_LCD_TYPE) || defined(FORCE_GSHOCK_LCD_TYPE)
+    watch_set_indicator(WATCH_INDICATOR_SLEEP);
+#endif
+}
+
 void watch_stop_blink(void) {
     emscripten_clear_timeout(blink_interval_id);
     blink_interval_id = -1;
@@ -137,6 +153,15 @@ bool watch_sleep_animation_is_running(void) {
     return tick_interval_id != -1;
 }
 
+<<<<<<< HEAD
+=======
+void watch_clear_sleep_indicator_if_possible(void) {
+#if defined(FORCE_CUSTOM_LCD_TYPE) || defined(FORCE_GSHOCK_LCD_TYPE)
+    watch_clear_indicator(WATCH_INDICATOR_SLEEP);
+#endif
+}
+
+>>>>>>> a98aee41 (Added in LCD, button and case in simulator; default behavior with START btn is going to games screen and back)
 void watch_stop_sleep_animation(void) {
     emscripten_clear_timeout(tick_interval_id);
     tick_interval_id = -1;
