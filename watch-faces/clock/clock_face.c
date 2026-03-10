@@ -111,13 +111,39 @@ static void clock_toggle_time_signal(clock_state_t *state) {
 }
 
 static void clock_display_all(watch_date_time_t date_time) {
-    char buf[8 + 1];
+    char buf[6 + 1];
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        clock_indicate(WATCH_INDICATOR_BOX_DASH, true);
+        snprintf(
+            buf,
+            sizeof(buf),
+            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            date_time.unit.month
+        );
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        snprintf(
+            buf,
+            sizeof(buf),
+            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    } else {
+        snprintf(
+            buf,
+            sizeof(buf),
+            (lcd_type == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    }
 
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d%02d" : "%2d%2d%02d%02d",
-        date_time.unit.day,
+        movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
         date_time.unit.hour,
         date_time.unit.minute,
         date_time.unit.second
@@ -178,18 +204,69 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     }
     char buf[8 + 1];
 
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        snprintf(
+            buf,
+            sizeof(buf),
+            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            date_time.unit.month
+        );
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        snprintf(
+            buf,
+            sizeof(buf),
+            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    } else {
+        snprintf(
+            buf,
+            sizeof(buf),
+            (lcd_type == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    }
+    
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d  " : "%2d%2d%02d  ",
-        date_time.unit.day,
+        movement_clock_has_leading_zeroes() ? "%02d%02d  " : "%2d%02d  ",
         date_time.unit.hour,
         date_time.unit.minute
     );
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    watch_display_text(WATCH_POSITION_BOTTOM, buf + 2);
+static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
+    char buf[2 + 1];
+    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % (MOVEMENT_LAST_CLOCK_MODE + 1);
+    movement_set_clock_mode_24h(next_mode);
+    bool in_12h_mode = !movement_clock_is_24h();
+    bool indicate_pm = in_12h_mode && clock_is_pm(date_time);
+    if (in_12h_mode) {
+        date_time = clock_24h_to_12h(date_time);
+    }
+    clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
+    clock_indicate_24h();
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        if (date_time.unit.month < 10) {
+            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.month);
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        }
+        if (date_time.unit.day < 10) {
+            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
+            watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+        }
+    } else if (lcd_type == WATCH_LCD_TYPE_CUSTOM && date_time.unit.day < 10) {
+        snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    } 
+    snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.hour);
+    watch_display_text(WATCH_POSITION_HOURS, buf);
 }
 
 static void clock_start_tick_tock_animation(void) {
