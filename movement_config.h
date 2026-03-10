@@ -64,8 +64,8 @@ const watch_face_t watch_faces[] = {
  * Set a hex value 0-15 with 0x0 being off and 0xF being max intensity
  */
 #define MOVEMENT_DEFAULT_RED_COLOR 0x0
-#define MOVEMENT_DEFAULT_GREEN_COLOR 0xC
-#define MOVEMENT_DEFAULT_BLUE_COLOR 0xF
+#define MOVEMENT_DEFAULT_GREEN_COLOR 0x3
+#define MOVEMENT_DEFAULT_BLUE_COLOR 0xA
 
 /* Set to true for 24h mode or false for 12h mode */
 #define MOVEMENT_DEFAULT_24H_MODE true
