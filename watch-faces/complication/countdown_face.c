@@ -214,7 +214,7 @@ void countdown_face_activate(void *context) {
     }
     watch_set_colon();
     if(state->repeat)
-        watch_set_indicator(WATCH_INDICATOR_BELL);
+        watch_set_indicator(WATCH_INDICATOR_LAP);
 
     movement_request_tick_frequency(1);
     quick_ticks_running = false;
@@ -335,9 +335,9 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 button_beep();
                 state->repeat = !state->repeat;
                 if(state->repeat)
-                    watch_set_indicator(WATCH_INDICATOR_BELL);
+                    watch_set_indicator(WATCH_INDICATOR_LAP);
                 else
-                    watch_clear_indicator(WATCH_INDICATOR_BELL);
+                    watch_clear_indicator(WATCH_INDICATOR_LAP);
             }
             break;
         case EVENT_ALARM_LONG_UP:
