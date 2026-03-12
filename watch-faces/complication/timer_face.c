@@ -329,7 +329,7 @@ bool timer_face_loop(movement_event_t event, void *context) {
                 case pausing:
                 case running:
                     _reset(state);
-                    if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 30);
+                    if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 20);
                     break;
                 default:
                     break;

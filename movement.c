@@ -1214,7 +1214,7 @@ static bool _switch_face(void) {
 
     if (movement_state.settings.bit.button_should_sound) {
         // low note for nonzero case, high note for return to watch_face 0
-        movement_play_note(movement_state.next_face_idx ? BUZZER_NOTE_C7 : BUZZER_NOTE_C8, 30);
+        movement_play_note(movement_state.next_face_idx ? BUZZER_NOTE_C7 : BUZZER_NOTE_C8, 20);
     }
 
     wf->activate(watch_face_contexts[movement_state.current_face_idx]);
