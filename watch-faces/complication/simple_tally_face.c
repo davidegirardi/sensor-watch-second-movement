@@ -37,10 +37,19 @@ static void draw(simple_tally_state_t *state) {
     return;
 }
 
-static inline void button_beep() {
+static inline void button_beep(simple_tally_note_t note_height) {
+    watch_buzzer_note_t note;
+    switch (note_height) {
+        case st_note_low:
+            note = BUZZER_NOTE_C7;
+            break;
+        case st_note_high:
+            note = BUZZER_NOTE_C8;
+            break;
+    }
     // play a beep as confirmation for a button press (if applicable)
     if (movement_button_should_sound()) {
-        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 30, movement_button_volume());
+        watch_buzzer_play_note_with_volume(note, 30, movement_button_volume());
     }
 }
 
@@ -105,25 +114,26 @@ bool simple_tally_face_loop(movement_event_t event, void *context) {
             // You can use the Light button for your own purposes. Note that by default, Movement will also
             // illuminate the LED in response to EVENT_LIGHT_BUTTON_DOWN; to suppress that behavior, add an
             // empty case for EVENT_LIGHT_BUTTON_DOWN.
-            simple_tally_face_decrement(state);
-            button_beep();
-            draw(state);
             movement_illuminate_led();
             break;
         case EVENT_LIGHT_LONG_PRESS:
+            simple_tally_face_decrement(state);
+            button_beep(st_note_low);
+            draw(state);
+            break;
+        case EVENT_LIGHT_REALLY_LONG_PRESS:
             if (!_init_val) {
                 state->simple_tally_counter = SIMPLE_TALLY_FACE_MIN;
                 _init_val = true;
             }
-            button_beep();
+            button_beep(st_note_high);
             draw(state);
             break;
         case EVENT_ALARM_LONG_PRESS:
             state->big_increment = true;
         case EVENT_ALARM_BUTTON_DOWN:
-            // Just in case you have need for another button.
             simple_tally_face_increment(state);
-            button_beep();
+            button_beep(st_note_low);
             draw(state);
             break;
         case EVENT_TIMEOUT:

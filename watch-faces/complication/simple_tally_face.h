@@ -41,6 +41,11 @@
  *
  */
 
+typedef enum {
+    st_note_low,
+    st_note_high,
+} simple_tally_note_t;
+
 typedef struct {
     // Anything you need to keep track of, put it here!
     int16_t simple_tally_counter;
