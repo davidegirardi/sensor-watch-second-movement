@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 Wesley Ellis
+ * Copyright (c) 2026 Davide Girardi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@
 /*
  * COUNTDOWN TIMER face
  *
- * Slight extension of the original countdown face by Wesley Ellis.
- *   - Press the light button to enter setting mode and adjust the
+ * Rework of the extension of the original countdown face by Wesley Ellis.
+ *   - Hold down the light button to enter setting mode and adjust the
  *     countdown timer.
  *   - Start and pause the countdown using the alarm button, similar
  *     to the stopwatch face.
