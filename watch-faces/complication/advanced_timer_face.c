@@ -343,6 +343,26 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_LONG_UP:
             _abort_quick_cycle(state);
             break;
+        // Like a G Shock
+        // case EVENT_MODE_BUTTON_DOWN:
+        //     printf("Mode down\n");
+        //     printf("State %d\n", state->mode);
+        //     if (state->mode == at_setting) {
+
+        //             if (state->erase_timer_flag) {
+        //                 state->timers[state->current_timer].value = 0;
+        //                 state->erase_timer_flag = false;
+        //             }
+        //             state->settings_state = (state->settings_state + 1) % 6;
+        //             if (state->settings_state == 1 && state->timers[state->current_timer].value == 0) state->settings_state = 2;
+        //             else if (state->settings_state == 5 && (state->timers[state->current_timer].value & 0xFFFFFF) == 0) state->settings_state = 0;
+        //         break;
+        //     }
+        //     movement_move_to_next_face();
+        //     break;
+        // case EVENT_MODE_LONG_PRESS:
+        //     movement_move_to_face(0);
+        //     break;
         case EVENT_TIMEOUT:
             _abort_quick_cycle(state);
             movement_move_to_face(0);
