@@ -40,7 +40,7 @@ static void draw(simple_tally_state_t *state) {
 static inline void button_beep(simple_tally_state_t *state) {
     watch_buzzer_note_t note;
     if (state->simple_tally_counter == SIMPLE_TALLY_FACE_MIN) {
-        note = BUZZER_NOTE_C8;
+        note = BUZZER_NOTE_C6;
     } else {
         note = BUZZER_NOTE_C7;
     }
