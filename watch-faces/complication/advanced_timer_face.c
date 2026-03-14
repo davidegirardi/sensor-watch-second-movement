@@ -254,13 +254,13 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                     if (state->settings_state == 1 && state->timers[state->current_timer].value == 0) state->settings_state = 2;
                     else if (state->settings_state == 5 && (state->timers[state->current_timer].value & 0xFFFFFF) == 0) state->settings_state = 0;
                     break;
+                case at_waiting:
+                    movement_illuminate_led();
+                    break;
                 default:
                     break;
             }
             _draw(state, event.subsecond);
-            break;
-        case EVENT_LIGHT_BUTTON_UP:
-            if (state->mode == at_waiting) movement_illuminate_led();
             break;
         case EVENT_ALARM_BUTTON_UP:
             _abort_quick_cycle(state);
