@@ -210,7 +210,7 @@ void countdown_face_activate(void *context) {
     countdown_state_t *state = (countdown_state_t *)context;
     if(state->mode == cd_running) {
         watch_date_time_t now = movement_get_utc_date_time();
-        state->now_ts = watch_utility_date_time_to_unix_time(now, 0);
+        state->now_ts = watch_utility_date_time_to_unix_time(now, movement_get_current_timezone_offset());
         watch_set_indicator(WATCH_INDICATOR_SIGNAL);
     }
     watch_set_colon();
