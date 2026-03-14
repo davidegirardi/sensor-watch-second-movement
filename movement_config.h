@@ -29,7 +29,7 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
-    timer_face,
+    advanced_timer_face,
     countdown_face,
     fast_stopwatch_face,
     advanced_alarm_face,
