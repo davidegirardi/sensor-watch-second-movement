@@ -255,14 +255,18 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                     else if (state->settings_state == 5 && (state->timers[state->current_timer].value & 0xFFFFFF) == 0) state->settings_state = 0;
                     break;
                 case at_waiting:
-                    movement_illuminate_led();
+                    uint8_t last_timer = state->current_timer;
+                    state->current_timer = (state->current_timer + 1) % TIMER_SLOTS;
+                    _set_next_valid_timer(state);
+                    // start the time immediately if there is only one valid timer slot
+                    if (last_timer == state->current_timer) _start(state, true);
                     break;
                 default:
                     break;
             }
             _draw(state, event.subsecond);
             break;
-        case EVENT_ALARM_BUTTON_UP:
+        case EVENT_ALARM_BUTTON_DOWN:
             _abort_quick_cycle(state);
             if (_check_for_signal()) break;;
             switch (state->mode) {
@@ -275,14 +279,6 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                 case at_pausing:
                     _start(state, false);
                     break;
-                case at_waiting: {
-                    uint8_t last_timer = state->current_timer;
-                    state->current_timer = (state->current_timer + 1) % TIMER_SLOTS;
-                    _set_next_valid_timer(state);
-                    // start the time immediately if there is only one valid timer slot
-                    if (last_timer == state->current_timer) _start(state, true);
-                    break;
-                }
                 case at_setting:
                     _settings_increment(state);
                     subsecond = 0;
@@ -292,6 +288,7 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (state->mode == at_waiting) {
+                state->current_timer = (state->current_timer + TIMER_SLOTS - 1) % TIMER_SLOTS;
                 // initiate settings
                 state->mode = at_setting;
                 state->settings_state = 0;
