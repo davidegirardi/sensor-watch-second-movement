@@ -278,9 +278,11 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                     state->pausing_seconds = 0;
                     state->paused_left = state->target_ts - state->now_ts;
                     movement_cancel_background_task();
+                    _beep();
                     break;
                 case at_pausing:
                     _start(state, false);
+                    _beep();
                     break;
                 case at_setting:
                     _settings_increment(state);
@@ -301,8 +303,10 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                 state->settings_state = 0;
                 state->erase_timer_flag = false;
                 movement_request_tick_frequency(4);
+                _beep();
             } else if (state->mode == at_setting) {
                 _resume_setting(state);
+                _beep();
             }
             _draw(state, event.subsecond);
             break;
