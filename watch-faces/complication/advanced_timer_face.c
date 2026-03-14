@@ -244,6 +244,9 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_DOWN:
             switch (state->mode) {
                 case at_pausing:
+                    _reset(state);
+                    _beep();
+                    break;
                 case at_running:
                     movement_illuminate_led();
                     break;
@@ -282,6 +285,10 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                 case at_setting:
                     _settings_increment(state);
                     subsecond = 0;
+                    break;
+                case at_waiting:
+                    _start(state, true);
+                    _beep();
                     break;
             }
             _draw(state, subsecond);
@@ -324,14 +331,8 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                     }
                     break;
                 case at_waiting:
-                    _start(state, true);
-                    _beep();
-                    break;
                 case at_pausing:
                 case at_running:
-                    _reset(state);
-                    _beep();
-                    break;
                 default:
                     break;
             }
