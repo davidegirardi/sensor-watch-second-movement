@@ -51,6 +51,8 @@ static uint8_t _buzzer_segdata[3][2] = {{0, 3}, {1, 3}, {2, 2}};
 
 static int8_t _wait_ticks;
 
+uint8_t last_alarm_idx;
+
 static uint8_t _get_weekday_idx(watch_date_time_t date_time) {
     date_time.unit.year += 20;
     if (date_time.unit.month <= 2) {
@@ -343,10 +345,15 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
     case EVENT_ACTIVATE:
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
-    case EVENT_LIGHT_BUTTON_UP:
+    case EVENT_LIGHT_BUTTON_DOWN:
         if (!state->is_setting) {
-            movement_illuminate_led();
-            _alarm_initiate_setting(state, event.subsecond);
+            // _alarm_initiate_setting(state, event.subsecond);
+            // stop wait ticks counter
+            _wait_ticks = -1;
+            // cycle through the alarms
+            last_alarm_idx = state->alarm_idx;
+            state->alarm_idx = (state->alarm_idx + 1) % (ALARM_ALARMS);
+            _advanced_alarm_face_draw(state, event.subsecond);
             break;
         }
         state->setting_state += 1;
@@ -359,15 +366,16 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         if (state->is_setting) {
             _alarm_resume_setting(state, event.subsecond);
         } else {
+            state->alarm_idx = last_alarm_idx ;
             _alarm_initiate_setting(state, event.subsecond);
         }
         break;
-    case EVENT_ALARM_BUTTON_UP:
+    case EVENT_ALARM_BUTTON_DOWN:
         if (!state->is_setting) {
-            // stop wait ticks counter
-            _wait_ticks = -1;
-            // cycle through the alarms
-            state->alarm_idx = (state->alarm_idx + 1) % (ALARM_ALARMS);
+            // toggle the enabled flag for current alarm
+            state->alarm[state->alarm_idx].enabled ^= 1;
+            // start wait ticks counter
+            _wait_ticks = 0;
         } else {
             // handle the settings behaviour
             switch (state->setting_state) {
@@ -463,9 +471,6 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         break;
     case EVENT_TIMEOUT:
         movement_move_to_face(0);
-        break;
-    case EVENT_LIGHT_BUTTON_DOWN:
-        // don't light up every time light is hit
         break;
     default:
         movement_default_loop_handler(event);
