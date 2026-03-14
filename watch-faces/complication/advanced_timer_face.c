@@ -36,6 +36,8 @@ static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C8, 2, 0};
 
 static uint8_t _beeps_to_play;    // temporary counter for ring signals playing
 
+uint8_t last_timer;
+
 static void _beep(void) {
     if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 20);
 }
@@ -255,11 +257,9 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
                     else if (state->settings_state == 5 && (state->timers[state->current_timer].value & 0xFFFFFF) == 0) state->settings_state = 0;
                     break;
                 case at_waiting:
-                    uint8_t last_timer = state->current_timer;
+                    last_timer = state->current_timer;
                     state->current_timer = (state->current_timer + 1) % TIMER_SLOTS;
                     _set_next_valid_timer(state);
-                    // start the time immediately if there is only one valid timer slot
-                    if (last_timer == state->current_timer) _start(state, true);
                     break;
                 default:
                     break;
@@ -288,7 +288,7 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (state->mode == at_waiting) {
-                state->current_timer = (state->current_timer + TIMER_SLOTS - 1) % TIMER_SLOTS;
+                state->current_timer = last_timer;
                 // initiate settings
                 state->mode = at_setting;
                 state->settings_state = 0;
