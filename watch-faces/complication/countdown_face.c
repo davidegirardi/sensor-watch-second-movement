@@ -1,6 +1,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2026 Davide Girardi
  * Copyright (c) 2024 Joseph Bryant
  * Copyright (c) 2023 Konrad Rieck
  * Copyright (c) 2022 Wesley Ellis
@@ -67,7 +68,7 @@ static inline void load_countdown(countdown_state_t *state) {
 
 static inline void button_beep() {
     // play a beep as confirmation for a button press (if applicable)
-    if (movement_button_should_sound()) watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 30, movement_button_volume());
+    if (movement_button_should_sound()) watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 20, movement_button_volume());
 }
 
 static void schedule_countdown(countdown_state_t *state) {
@@ -214,7 +215,7 @@ void countdown_face_activate(void *context) {
     }
     watch_set_colon();
     if(state->repeat)
-        watch_set_indicator(WATCH_INDICATOR_BELL);
+        watch_set_indicator(WATCH_INDICATOR_LAP);
 
     movement_request_tick_frequency(1);
     quick_ticks_running = false;
@@ -252,7 +253,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
             draw(state, event.subsecond);
             break;
-        case EVENT_LIGHT_BUTTON_UP:
+        case EVENT_LIGHT_BUTTON_DOWN:
             switch(state->mode) {
                 case cd_running:
                 case cd_reset:
@@ -267,6 +268,11 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     if(state->selection >= CD_SELECTIONS) {
                         state->selection = 0;
                         state->mode = cd_reset;
+                        if (state->hours == 0 && state->minutes == 0 && state->seconds == 0) {
+                            state->hours = 23;
+                            state->minutes = 59;
+                            state->seconds = 59;
+                        }
                         store_countdown(state);
                         movement_request_tick_frequency(1);
                         button_beep();
@@ -275,7 +281,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             }
             draw(state, event.subsecond);
             break;
-        case EVENT_ALARM_BUTTON_UP:
+        case EVENT_ALARM_BUTTON_DOWN:
             switch(state->mode) {
                 case cd_running:
                     pause(state);
@@ -284,6 +290,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 case cd_reset:
                 case cd_paused:
                     // Only start the timer if we have a valid time.
+                    // This should never happen with the conversion of 00:00:00 to 23:59:59
                     if (!(state->hours == 0 && state->minutes == 0 && state->seconds == 0)) {
                         abort_tap_detection(state);
                         start(state);
@@ -299,45 +306,35 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_LONG_PRESS:
             switch(state->mode) {
-                case cd_reset:
-                    // long press in reset mode enters settings
-                    abort_tap_detection(state);
-                    state->mode = cd_setting;
-                    movement_request_tick_frequency(4);
-                    button_beep();
-                    break;
                 case cd_setting:
                     // long press in settings mode starts quick ticks for adjusting the time
                     quick_ticks_running = true;
                     movement_request_tick_frequency(8);
                     break;
+                case cd_reset:
                 case cd_running:
                 case cd_paused:
-                    // do nothing
+                    // Toggle auto-repeat
+                    button_beep();
+                    state->repeat = !state->repeat;
+                    if(state->repeat)
+                        watch_set_indicator(WATCH_INDICATOR_LAP);
+                    else
+                        watch_clear_indicator(WATCH_INDICATOR_LAP);
                     break;
             }
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (state->mode == cd_setting) {
-                switch (state->selection) {
-                    case 0:
                         state->hours = 0;
-                        // intentional fallthrough
-                    case 1:
                         state->minutes = 0;
-                        // intentional fallthrough
-                    case 2:
                         state->seconds = 0;
-                        break;
-                }
+                        state->selection = 0;
             } else {
-                // Toggle auto-repeat
+                abort_tap_detection(state);
+                state->mode = cd_setting;
+                movement_request_tick_frequency(4);
                 button_beep();
-                state->repeat = !state->repeat;
-                if(state->repeat)
-                    watch_set_indicator(WATCH_INDICATOR_BELL);
-                else
-                    watch_clear_indicator(WATCH_INDICATOR_BELL);
             }
             break;
         case EVENT_ALARM_LONG_UP:
@@ -365,9 +362,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 watch_display_text(WATCH_POSITION_SECONDS, "  ");
             }
             if (!watch_sleep_animation_is_running()) watch_start_sleep_animation(1000);
-            break;
-        case EVENT_LIGHT_BUTTON_DOWN:
-            // intentionally squelch the light default event; we only show the light when cd is running or reset
             break;
         case EVENT_SINGLE_TAP:
             if (state->has_tapped_once == false) {

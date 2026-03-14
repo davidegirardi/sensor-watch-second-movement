@@ -101,7 +101,7 @@ static uint32_t _get_now_ts() {
 
 static inline void _button_beep() {
     // play a beep as confirmation for a button press (if applicable)
-    if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 30);
+    if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 20);
 }
 
 static void _timer_write_info(interval_face_state_t *state, char* bottom_row, char state_str[2][4], char* index_str, uint8_t timer_page) {

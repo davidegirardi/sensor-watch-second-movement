@@ -80,6 +80,8 @@
 #include "simon_face.h"
 #include "ping_face.h"
 #include "rtccount_face.h"
+#include "tomato_face.h"
+#include "solar_time_face.h"
 #include "archery_face.h"
 #include "simple_tally_face.h"
 #include "advanced_timer_face.h"

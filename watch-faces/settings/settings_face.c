@@ -64,12 +64,12 @@ static void beep_setting_advance(void) {
         movement_set_button_should_sound(true);
         movement_set_button_volume(WATCH_BUZZER_VOLUME_SOFT);
         beep_setting_display(1);
-        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 30, WATCH_BUZZER_VOLUME_SOFT);
+        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 20, WATCH_BUZZER_VOLUME_SOFT);
     } else if (movement_button_volume() == WATCH_BUZZER_VOLUME_SOFT) {
         // was soft. make it loud.
         movement_set_button_volume(WATCH_BUZZER_VOLUME_LOUD);
         beep_setting_display(1);
-        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 30, WATCH_BUZZER_VOLUME_LOUD);
+        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 20, WATCH_BUZZER_VOLUME_LOUD);
     } else {
         // was loud. make it silent.
         movement_set_button_should_sound(false);

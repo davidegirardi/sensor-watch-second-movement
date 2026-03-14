@@ -31,9 +31,9 @@ static const int8_t WAIT_TIME_SECONDS = 10;
 static const int8_t INDOOR_RUN_MINUTES = 2;
 static const int8_t OUTDOOR_RUN_MINUTES = 4;
 
-static const int8_t _sound_seq_prepare[] = {BUZZER_NOTE_C6, 40, BUZZER_NOTE_REST, 40, -2, 1, 0};
-static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C7, 50, 0};
-static const int8_t _sound_seq_end[] = {BUZZER_NOTE_C7, 40, BUZZER_NOTE_REST, 40, -2, 2, 0};
+static const int8_t _sound_seq_prepare[] = {BUZZER_NOTE_C6, 30, BUZZER_NOTE_REST, 30, -2, 1, 0};
+static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C7, 40, 0};
+static const int8_t _sound_seq_end[] = {BUZZER_NOTE_C7, 30, BUZZER_NOTE_REST, 30, -2, 2, 0};
 
 static inline void button_beep() {
     // play a beep as confirmation for a button press (if applicable)
@@ -126,11 +126,11 @@ static void manage_stages(archery_state_t *state) {
     if (state->mode == archery_prepare) {
         state->minutes = state->round == wa_indoor ? INDOOR_RUN_MINUTES : OUTDOOR_RUN_MINUTES;
         state->seconds = 0;
-        watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_start, NULL, movement_alarm_volume());
+        watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_start, NULL, WATCH_BUZZER_VOLUME_SOFT);
         state->mode = archery_running;
         schedule_countdown(state);
     } else {
-        watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_end, NULL, movement_alarm_volume());
+        watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_end, NULL, WATCH_BUZZER_VOLUME_SOFT);
         reset(state);
     }
 }
@@ -174,10 +174,12 @@ bool archery_face_loop(movement_event_t event, void *context) {
             }
             draw(state, event.subsecond);
             break;
-        case EVENT_LIGHT_BUTTON_UP:
+        case EVENT_LIGHT_BUTTON_DOWN:
             if (state->mode == archery_paused) {
                 reset(state);
                 button_beep();
+            } else {
+                movement_illuminate_led();
             }
             draw(state, event.subsecond);
             break;
@@ -191,7 +193,7 @@ bool archery_face_loop(movement_event_t event, void *context) {
                 case archery_reset:
                     state->minutes = 0;
                     state->seconds = 10;
-                    watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_prepare, NULL, movement_alarm_volume());
+                    watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_prepare, NULL, WATCH_BUZZER_VOLUME_SOFT);
                     state->mode = archery_prepare;
                     schedule_countdown(state);
                     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
@@ -228,10 +230,9 @@ bool archery_face_loop(movement_event_t event, void *context) {
             manage_stages(state);
             break;
         case EVENT_TIMEOUT:
-            // Do not get back to face 0 on timeout but return on low energy below
+            movement_move_to_face(0);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            movement_move_to_face(0);
             break;
         default:
             return movement_default_loop_handler(event);
