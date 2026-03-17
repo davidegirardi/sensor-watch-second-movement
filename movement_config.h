@@ -38,7 +38,6 @@ const watch_face_t watch_faces[] = {
     simple_tally_face,
     pulsometer_face,
     probability_face,
-    days_since_face,
     world_clock_face,
     settings_face,
     finetune_face,
