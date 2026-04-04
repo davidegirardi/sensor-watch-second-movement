@@ -106,7 +106,7 @@ const watch_face_t watch_faces[] = {
  * 2: 3 seconds
  * 3: 5 seconds
  */
-#define MOVEMENT_DEFAULT_LED_DURATION 1
+#define MOVEMENT_DEFAULT_LED_DURATION 2
 
 /* Optionally debounce button presses (disable by default).
  * A value of 4 is a good starting point if you have issues
