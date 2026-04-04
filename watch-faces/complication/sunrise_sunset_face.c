@@ -582,6 +582,8 @@ bool sunrise_sunset_face_loop(movement_event_t event, void *context) {
                 movement_request_tick_frequency(1);
                 _sunrise_sunset_face_update(state);
             }
+            // Always return home like all other faces
+            movement_move_to_face(0);
             break;
         default:
             return movement_default_loop_handler(event);
