@@ -93,6 +93,7 @@ typedef struct {
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
     volatile bool is_buzzing;
+    volatile bool do_not_pass_button_event;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
     volatile bool has_pending_accelerometer;
@@ -322,7 +323,16 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
             watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONG_PRESS_TICKS, button->timeout_index);
             any_down = true;
             // this button's events will start getting passed to the face
-            movement_volatile_state.passthrough_events &= ~button_events_masks[i];
+            // unless a signal is playing it would be better to do this only on
+            // alarms but we have to be compatible with the various ways of
+            // triggering buzzer sequences so we use is_buzzing which is set by
+            // the buzzer callback cb_buzzer_start()
+            if (movement_volatile_state.is_buzzing) {
+                movement_volatile_state.do_not_pass_button_event = true;
+            } else {
+                movement_volatile_state.do_not_pass_button_event = false;
+                movement_volatile_state.passthrough_events &= ~button_events_masks[i];
+            }
         }
 
         // If a long press occurred
@@ -949,6 +959,7 @@ void app_init(void) {
     movement_volatile_state.is_sleeping = false;
 
     movement_volatile_state.is_buzzing = false;
+    movement_volatile_state.do_not_pass_button_event = false;
     movement_volatile_state.pending_sequence_priority = 0;
 
     movement_volatile_state.mode_button.down_event = EVENT_MODE_BUTTON_DOWN;
@@ -1288,7 +1299,17 @@ bool app_loop(void) {
     while (passthrough_pending_events) {
         uint8_t next_event = __builtin_ctz(passthrough_pending_events);
         event.event_type = event_type + next_event;
-        can_sleep = movement_default_loop_handler(event) && can_sleep;
+        switch (event.event_type) {
+            case EVENT_MODE_BUTTON_DOWN:
+            case EVENT_LIGHT_BUTTON_DOWN:
+            case EVENT_ALARM_BUTTON_DOWN:
+                if (movement_volatile_state.do_not_pass_button_event) {
+                    movement_volatile_state.do_not_pass_button_event = false;
+                    break;
+                }
+            default:
+            can_sleep = movement_default_loop_handler(event) && can_sleep;
+        }
         passthrough_pending_events = passthrough_pending_events >> (next_event + 1);
         event_type = event_type + next_event + 1;
     }
@@ -1297,7 +1318,18 @@ bool app_loop(void) {
     while (pending_events) {
         uint8_t next_event = __builtin_ctz(pending_events);
         event.event_type = event_type + next_event;
-        can_sleep = wf->loop(event, watch_face_contexts[movement_state.current_face_idx]) && can_sleep;
+        switch (event.event_type) {
+            case EVENT_MODE_BUTTON_DOWN:
+            case EVENT_LIGHT_BUTTON_DOWN:
+            case EVENT_ALARM_BUTTON_DOWN:
+                if (movement_volatile_state.do_not_pass_button_event) {
+                    movement_volatile_state.do_not_pass_button_event = false;
+                    break;
+                }
+            default:
+                can_sleep = wf->loop(event, watch_face_contexts[movement_state.current_face_idx]) && can_sleep;
+                break;
+        }
         pending_events = pending_events >> (next_event + 1);
         event_type = event_type + next_event + 1;
     }
