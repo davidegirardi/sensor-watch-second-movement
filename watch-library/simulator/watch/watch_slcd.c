@@ -155,15 +155,12 @@ bool watch_sleep_animation_is_running(void) {
     return tick_interval_id != -1;
 }
 
-<<<<<<< HEAD
-=======
 void watch_clear_sleep_indicator_if_possible(void) {
 #if defined(FORCE_CUSTOM_LCD_TYPE) || defined(FORCE_GSHOCK_LCD_TYPE)
     watch_clear_indicator(WATCH_INDICATOR_SLEEP);
 #endif
 }
 
->>>>>>> a98aee41 (Added in LCD, button and case in simulator; default behavior with START btn is going to games screen and back)
 void watch_stop_sleep_animation(void) {
     emscripten_clear_timeout(tick_interval_id);
     tick_interval_id = -1;

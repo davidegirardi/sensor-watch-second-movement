@@ -126,12 +126,15 @@ bool set_time_face_loop(movement_event_t event, void *context) {
 
     char buf[11];
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, (char *) set_time_face_titles[current_page], (char *) set_time_face_fallback_titles[current_page]);
-    if (current_page == 3) {
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, " Z");
-        if (current_offset < 0) watch_display_text(WATCH_POSITION_TOP_LEFT, "- ");
-        else watch_display_text(WATCH_POSITION_TOP_LEFT, "* ");
-        if (event.subsecond % 2) {
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, (char *) set_time_face_titles[current_page],
+                                                (char *) set_time_face_fallback_titles[current_page],
+                                                (char *) set_time_face_fallback_titles[current_page]);
+    if (current_page == SET_TIME_TZ) {
+        uint8_t curr_idx = movement_get_timezone_index();
+        sprintf(buf, "%2d", curr_idx % 100);
+        if (buf[0] == '4' && (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC)) buf[0] = 'W'; // W looks the closest like 4
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+        if (_display_tz_offset) {
             uint8_t hours = abs(current_offset) / 3600;
             uint8_t minutes = (abs(current_offset) % 3600) / 60;
 

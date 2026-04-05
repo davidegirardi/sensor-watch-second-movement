@@ -58,6 +58,33 @@ static movement_location_t load_location_from_filesystem() {
     return location;
 }
 
+static uint8_t city_idx_of_curr_location(int16_t latitude, int16_t longitude){
+    for (uint8_t i = 0; i < _long_lat_preset_count; i++) {
+        if (sunriseSunsetLongLatPresets[i].latitude == latitude && sunriseSunsetLongLatPresets[i].longitude == longitude) {
+            return i;
+        }
+    }
+    return _long_lat_preset_count;
+}
+
+static void display_city(sunrise_sunset_state_t *state) {
+    char buf[7];
+    if (state->city_idx >= _long_lat_preset_count) {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+        watch_display_text(WATCH_POSITION_BOTTOM, "CUSTOM");
+    } else {
+        sprintf(buf, " %d", sunriseSunsetLongLatPresets[state->city_idx].region);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+        if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+            sprintf(buf, "%.6s", sunriseSunsetLongLatPresets[state->city_idx].name);
+        } else {
+            sprintf(buf, " %.5s", sunriseSunsetLongLatPresets[state->city_idx].name);
+        }
+        watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    }
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "CIT", "CI", "CI");
+}
+
 static void _sunrise_sunset_set_expiration(sunrise_sunset_state_t *state, watch_date_time_t next_rise_set) {
     uint32_t timestamp = watch_utility_date_time_to_unix_time(next_rise_set, 0);
     state->rise_set_expires = watch_utility_date_time_from_unix_time(timestamp + 60, 0);
@@ -76,8 +103,8 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
     }
 
     if (movement_location.reg == 0) {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Sunri", "rI");
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "No LOC", "No Loc");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Sunri", "rI", "rI");
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "No LOC", "No LOC", "No Loc");
         return;
     }
 
@@ -102,8 +129,8 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
             watch_clear_colon();
             watch_clear_indicator(WATCH_INDICATOR_PM);
             watch_clear_indicator(WATCH_INDICATOR_24H);
-            if (result == 1) watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE");
-            else watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
+            if (result == 1) watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE", "SE");
+            else watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI", "rI");
             sprintf(buf, "%2d", scratch_time.unit.day);
             watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
             watch_display_text(WATCH_POSITION_BOTTOM, "None  ");
@@ -144,7 +171,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
                     if (watch_utility_convert_to_12_hour(&scratch_time)) watch_set_indicator(WATCH_INDICATOR_PM);
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI", "rI");
                 sprintf(buf, "%2d", scratch_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
                 sprintf(buf, "%2d%02d%2s", scratch_time.unit.hour, scratch_time.unit.minute,longLatPresets[state->longLatToUse].name);
@@ -183,7 +210,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
                     if (watch_utility_convert_to_12_hour(&scratch_time)) watch_set_indicator(WATCH_INDICATOR_PM);
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE", "SE");
                 sprintf(buf, "%2d", scratch_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
                 sprintf(buf, "%2d%02d%2s", scratch_time.unit.hour, scratch_time.unit.minute,longLatPresets[state->longLatToUse].name);
@@ -251,9 +278,8 @@ static void _sunrise_sunset_face_update_settings_display(movement_event_t event,
     switch (state->page) {
         case 0:
             return;
-        case 1:
-            // Latitude
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LAT", "LA");
+        case SUNRISE_SUNSET_FACE_SETTING_LAT:
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LAT", "LA", "LA");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
                 watch_set_decimal_if_available();
                 watch_display_character('0' + state->working_latitude.tens, 4);
@@ -275,9 +301,8 @@ static void _sunrise_sunset_face_update_settings_display(movement_event_t event,
                 watch_display_text(WATCH_POSITION_BOTTOM, buf);
             }
             break;
-        case 2:
-            // Longitude
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LON", "LO");
+        case SUNRISE_SUNSET_FACE_SETTING_LONG:
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LON", "LO", "LO");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
                 watch_set_decimal_if_available();
                 // Handle leading 1 for longitudes >99
