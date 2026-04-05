@@ -38,7 +38,6 @@ const watch_face_t watch_faces[] = {
     simple_tally_face,
     pulsometer_face,
     probability_face,
-    days_since_face,
     world_clock_face,
     settings_face,
     finetune_face,
@@ -85,7 +84,7 @@ const watch_face_t watch_faces[] = {
  * 2: 5 minutes
  * 3: 30 minutes
  */
-#define MOVEMENT_DEFAULT_TIMEOUT_INTERVAL 2
+#define MOVEMENT_DEFAULT_TIMEOUT_INTERVAL 0
 
 /* Set the timeout before switching to low energy mode
  * Valid values are:
@@ -98,7 +97,7 @@ const watch_face_t watch_faces[] = {
  * 6: 1 day
  * 7: 7 days
  */
-#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 2
+#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 0
 
 /* Set the led duration
  * Valid values are:
@@ -107,7 +106,7 @@ const watch_face_t watch_faces[] = {
  * 2: 3 seconds
  * 3: 5 seconds
  */
-#define MOVEMENT_DEFAULT_LED_DURATION 1
+#define MOVEMENT_DEFAULT_LED_DURATION 2
 
 /* Optionally debounce button presses (disable by default).
  * A value of 4 is a good starting point if you have issues

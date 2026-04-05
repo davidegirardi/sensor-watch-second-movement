@@ -35,6 +35,15 @@
 #define DEFAULT_MINUTES 3
 #define TAP_DETECTION_SECONDS 5
 
+// The note sequence of the semi-classic timer
+int8_t countdown_tune[] = {
+    BUZZER_NOTE_C8, 28,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_REST, 32,
+    -3, 9,
+    0
+};
+
 static bool quick_ticks_running;
 
 static void abort_quick_ticks(countdown_state_t *state) {
@@ -83,7 +92,7 @@ static void schedule_countdown(countdown_state_t *state) {
 }
 
 static void auto_repeat(countdown_state_t *state) {
-    movement_play_alarm();
+    watch_buzzer_play_sequence_with_volume(countdown_tune, NULL, movement_alarm_volume());
     load_countdown(state);
     schedule_countdown(state);
 }
@@ -161,7 +170,7 @@ static void reset(countdown_state_t *state) {
 }
 
 static void ring(countdown_state_t *state) {
-    movement_play_alarm();
+    watch_buzzer_play_sequence_with_volume(countdown_tune, NULL, movement_alarm_volume());
     reset(state);
 }
 

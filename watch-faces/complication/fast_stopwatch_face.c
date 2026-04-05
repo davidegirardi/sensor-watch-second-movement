@@ -229,7 +229,6 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     state->lap_counter = counter;
                     movement_request_tick_frequency(get_refresh_rate(state));
                     _button_beep();
-                    movement_illuminate_led();
                     return;
                 case EVENT_LIGHT_LONG_PRESS:
                     state->status = SW_STATUS_RUNNING;
@@ -268,7 +267,6 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                 case EVENT_LIGHT_BUTTON_DOWN:
                     state->status = SW_STATUS_IDLE;
                     _button_beep();
-                    movement_illuminate_led();
                     return;
                 default:
                     return;

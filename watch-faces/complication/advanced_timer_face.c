@@ -31,22 +31,25 @@
 static const uint32_t _default_timer_values[] = {0x000200, 0x000500, 0x000A00, 0x001400, 0x002D02}; // default timers: 2 min, 5 min, 10 min, 20 min, 2 h 45 min
 
 // sound sequence for a single beeping sequence
-static const int8_t _sound_seq_beep[] = {BUZZER_NOTE_C8, 3, BUZZER_NOTE_REST, 3, -2, 2, BUZZER_NOTE_C8, 5, BUZZER_NOTE_REST, 25, 0};
+static const int8_t _sound_seq_beep[] = {
+    BUZZER_NOTE_C8, 4,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_C8, 4,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_C8, 4,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_C8, 4,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_REST, 32,
+    -9, 9,
+    0
+};
 static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C8, 2, 0};
-
-static uint8_t _beeps_to_play;    // temporary counter for ring signals playing
 
 uint8_t last_timer;
 
 static void _beep(void) {
     if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 20);
-}
-
-static void _signal_callback() {
-    if (_beeps_to_play) {
-        _beeps_to_play--;
-        watch_buzzer_play_sequence((int8_t *)_sound_seq_beep, _signal_callback);
-    }
 }
 
 static void _start(advanced_timer_state_t *state, bool with_beep) {
@@ -63,7 +66,6 @@ static void _start(advanced_timer_state_t *state, bool with_beep) {
     watch_date_time_t target_dt = watch_utility_date_time_from_unix_time(state->target_ts, movement_get_current_timezone_offset());
     state->mode = at_running;
     movement_schedule_background_task_for_face(state->watch_face_index, target_dt);
-    watch_set_indicator(WATCH_INDICATOR_BELL);
 }
 
 static void _draw(advanced_timer_state_t *state, uint8_t subsecond) {
@@ -91,6 +93,7 @@ static void _draw(advanced_timer_state_t *state, uint8_t subsecond) {
             min = result.rem;
             h = result.quot;
             sprintf(bottom_time, "%02u%02u%02u", h, min, sec);
+            watch_set_indicator(WATCH_INDICATOR_BELL);
             break;
         case at_setting:
             if (state->settings_state == 1) {
@@ -187,14 +190,6 @@ static void _abort_quick_cycle(advanced_timer_state_t *state) {
     }
 }
 
-static inline bool _check_for_signal() {
-    if (_beeps_to_play) {
-        _beeps_to_play = 0;
-        return true;
-    }
-    return false;
-}
-
 void advanced_timer_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
     if (*context_ptr == NULL) {
@@ -218,7 +213,6 @@ void advanced_timer_face_activate(void *context) {
         watch_set_indicator(WATCH_INDICATOR_BELL);
     } else {
         state->pausing_seconds = 1;
-        _beeps_to_play = 0;
     }
 }
 
@@ -271,7 +265,6 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_BUTTON_DOWN:
             _abort_quick_cycle(state);
-            if (_check_for_signal()) break;;
             switch (state->mode) {
                 case at_running:
                     state->mode = at_pausing;
@@ -312,8 +305,7 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_BACKGROUND_TASK:
             // play the alarm
-            _beeps_to_play = 4;
-            watch_buzzer_play_sequence((int8_t *)_sound_seq_beep, _signal_callback);
+            watch_buzzer_play_sequence_with_volume((int8_t *)_sound_seq_beep, NULL, movement_alarm_volume());
             _reset(state);
             if (state->timers[state->current_timer].unit.repeat) _start(state, false);
             break;
