@@ -40,9 +40,9 @@ const watch_face_t watch_faces[] = {
     probability_face,
     world_clock_face,
     settings_face,
+    set_time_face,
     finetune_face,
     nanosec_face,
-    set_time_face,
     voltage_face,
     all_segments_face,
 };
