@@ -54,10 +54,6 @@ static void clock_indicate_alarm() {
     clock_indicate(WATCH_INDICATOR_SIGNAL, movement_alarm_enabled());
 }
 
-static void clock_indicate_button_sound() {
-    clock_indicate(WATCH_INDICATOR_SLEEP, !movement_button_should_sound());
-}
-
 static void clock_indicate_time_signal(clock_state_t *state) {
     clock_indicate(WATCH_INDICATOR_BELL, state->time_signal_enabled);
 }
@@ -107,11 +103,6 @@ static void clock_check_battery_periodically(clock_state_t *state, watch_date_ti
     state->battery_low = voltage < CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD;
 
     clock_indicate_low_available_power(state);
-}
-
-static void clock_toggle_button_sound() {
-    movement_set_button_should_sound(!movement_button_should_sound());
-    clock_indicate_button_sound();
 }
 
 static void clock_toggle_time_signal(clock_state_t *state) {
@@ -222,6 +213,7 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         *context_ptr = malloc(sizeof(clock_state_t));
         clock_state_t *state = (clock_state_t *) *context_ptr;
         state->time_signal_enabled = true;
+        state->blink_bell_counter = 4;
         state->watch_face_index = watch_face_index;
     }
 }
@@ -232,7 +224,6 @@ void clock_face_activate(void *context) {
     clock_stop_tick_tock_animation();
 
     clock_indicate_time_signal(state);
-    clock_indicate_button_sound();
     clock_indicate_alarm();
     clock_indicate_24h();
 
@@ -252,6 +243,13 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_display_low_energy(movement_get_local_date_time());
             break;
         case EVENT_TICK:
+            // Blink the bell indicator during the animation
+            if (state->blink_bell_counter < 4) clock_indicate(WATCH_INDICATOR_BELL, state->blink_bell_counter++ % 2);
+            else {
+                movement_request_tick_frequency(1);
+                // Set the indicator, no matter what the animation did
+                clock_indicate_time_signal(state);
+            }
         case EVENT_ACTIVATE:
             current = movement_get_local_date_time();
 
@@ -266,7 +264,10 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_toggle_time_signal(state);
             break;
         case EVENT_ALARM_REALLY_LONG_PRESS:
-            clock_toggle_button_sound();
+            // Toggle the button beep while blinking the bell indicator
+            state->blink_bell_counter = 0;
+            movement_request_tick_frequency(4);
+            movement_set_button_should_sound(!movement_button_should_sound());
             break;
         case EVENT_BACKGROUND_TASK:
             // uncomment this line to snap back to the clock face when the hour signal sounds:
