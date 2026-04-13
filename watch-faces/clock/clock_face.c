@@ -233,6 +233,23 @@ void clock_face_activate(void *context) {
     state->date_time.previous.reg = 0xFFFFFFFF;
 }
 
+void animate_toggle_beep(clock_state_t *state, watch_date_time_t current) {
+    watch_clear_colon();
+    clock_indicate(WATCH_INDICATOR_BELL, state->blink_bell_counter++ % 2);
+    if (movement_button_should_sound()) {
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8EEP y", "8EEP y");
+    } else {
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8EEP n", "8EEP n");
+    }
+    if (state->blink_bell_counter >= 4) {
+        // like when activating, this ensures that none of the timestamp fields
+        // will match, so we can re-render them all.
+        state->date_time.previous.reg = 0xFFFFFFFF;
+        clock_indicate_time_signal(state);
+        movement_request_tick_frequency(1);
+    }
+}
+
 bool clock_face_loop(movement_event_t event, void *context) {
     clock_state_t *state = (clock_state_t *) context;
     watch_date_time_t current;
@@ -243,22 +260,19 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_display_low_energy(movement_get_local_date_time());
             break;
         case EVENT_TICK:
-            // Blink the bell indicator during the animation
-            if (state->blink_bell_counter < 4) clock_indicate(WATCH_INDICATOR_BELL, state->blink_bell_counter++ % 2);
-            else {
-                movement_request_tick_frequency(1);
-                // Set the indicator, no matter what the animation did
-                clock_indicate_time_signal(state);
-            }
         case EVENT_ACTIVATE:
-            current = movement_get_local_date_time();
+            // Blink the bell indicator when toggling the buttong beep
+            if (state->blink_bell_counter < 4) {
+                animate_toggle_beep(state, current);
+            } else {
+                current = movement_get_local_date_time();
 
-            clock_display_clock(state, current);
+                clock_display_clock(state, current);
 
-            clock_check_battery_periodically(state, current);
+                clock_check_battery_periodically(state, current);
 
-            state->date_time.previous = current;
-
+                state->date_time.previous = current;
+            }
             break;
         case EVENT_ALARM_LONG_PRESS:
             clock_toggle_time_signal(state);
