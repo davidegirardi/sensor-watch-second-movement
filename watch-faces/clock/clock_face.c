@@ -212,7 +212,8 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(clock_state_t));
         clock_state_t *state = (clock_state_t *) *context_ptr;
-        state->time_signal_enabled = false;
+        state->time_signal_enabled = true;
+        state->blink_bell_counter = 4;
         state->watch_face_index = watch_face_index;
     }
 }
@@ -232,6 +233,23 @@ void clock_face_activate(void *context) {
     state->date_time.previous.reg = 0xFFFFFFFF;
 }
 
+void animate_toggle_beep(clock_state_t *state, watch_date_time_t current) {
+    watch_clear_colon();
+    clock_indicate(WATCH_INDICATOR_BELL, state->blink_bell_counter++ % 2);
+    if (movement_button_sound_enabled()) {
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8EEP y", "8EEP y");
+    } else {
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8EEP n", "8EEP n");
+    }
+    if (state->blink_bell_counter >= 4) {
+        // like when activating, this ensures that none of the timestamp fields
+        // will match, so we can re-render them all.
+        state->date_time.previous.reg = 0xFFFFFFFF;
+        clock_indicate_time_signal(state);
+        movement_request_tick_frequency(1);
+    }
+}
+
 bool clock_face_loop(movement_event_t event, void *context) {
     clock_state_t *state = (clock_state_t *) context;
     watch_date_time_t current;
@@ -243,17 +261,27 @@ bool clock_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
         case EVENT_ACTIVATE:
-            current = movement_get_local_date_time();
+            // Blink the bell indicator when toggling the buttong beep
+            if (state->blink_bell_counter < 4) {
+                animate_toggle_beep(state, current);
+            } else {
+                current = movement_get_local_date_time();
 
-            clock_display_clock(state, current);
+                clock_display_clock(state, current);
 
-            clock_check_battery_periodically(state, current);
+                clock_check_battery_periodically(state, current);
 
-            state->date_time.previous = current;
-
+                state->date_time.previous = current;
+            }
             break;
         case EVENT_ALARM_LONG_PRESS:
             clock_toggle_time_signal(state);
+            break;
+        case EVENT_ALARM_REALLY_LONG_PRESS:
+            // Toggle the button beep while blinking the bell indicator
+            state->blink_bell_counter = 0;
+            movement_request_tick_frequency(4);
+            movement_set_button_should_sound(!movement_button_sound_enabled());
             break;
         case EVENT_BACKGROUND_TASK:
             // uncomment this line to snap back to the clock face when the hour signal sounds:

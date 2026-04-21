@@ -49,7 +49,7 @@ static const int8_t _sound_seq_start[] = {BUZZER_NOTE_C8, 2, 0};
 uint8_t last_timer;
 
 static void _beep(void) {
-    if (movement_button_should_sound()) watch_buzzer_play_note(BUZZER_NOTE_C7, 20);
+    if (movement_button_should_sound()) watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 20, movement_button_volume());
 }
 
 static void _start(advanced_timer_state_t *state, bool with_beep) {

@@ -46,7 +46,7 @@ static inline void button_beep(simple_tally_state_t *state) {
     }
     // play a beep as confirmation for a button press (if applicable)
     if (movement_button_should_sound()) {
-        watch_buzzer_play_note_with_volume(note, 30, movement_button_volume());
+        watch_buzzer_play_note_with_volume(note, 20, movement_button_volume());
     }
 }
 

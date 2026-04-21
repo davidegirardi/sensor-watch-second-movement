@@ -40,9 +40,9 @@ const watch_face_t watch_faces[] = {
     probability_face,
     world_clock_face,
     settings_face,
+    set_time_face,
     finetune_face,
     nanosec_face,
-    set_time_face,
     voltage_face,
     all_segments_face,
 };
@@ -77,6 +77,12 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_SOFT
 #define MOVEMENT_DEFAULT_ALARM_VOLUME WATCH_BUZZER_VOLUME_LOUD
 
+/* Do not beep on button presses nor sound the hourly chimes between these hours 
+ * Set them to the same value here or at runtime to disable the feature
+ */
+#define MOVEMENT_DEFAULT_QUIET_TIME_START 22
+#define MOVEMENT_DEFAULT_QUIET_TIME_STOP 8
+
 /* Set the timeout before switching back to the main watch face
  * Valid values are:
  * 0: 60 seconds
@@ -106,7 +112,7 @@ const watch_face_t watch_faces[] = {
  * 2: 3 seconds
  * 3: 5 seconds
  */
-#define MOVEMENT_DEFAULT_LED_DURATION 2
+#define MOVEMENT_DEFAULT_LED_DURATION 1
 
 /* Optionally debounce button presses (disable by default).
  * A value of 4 is a good starting point if you have issues
