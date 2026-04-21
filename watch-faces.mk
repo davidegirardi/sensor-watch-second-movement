@@ -60,4 +60,5 @@ SRCS += \
   ./watch-faces/complication/archery_face.c \
   ./watch-faces/complication/simple_tally_face.c \
   ./watch-faces/complication/advanced_timer_face.c \
+  ./watch-faces/complication/tide_face.c \
 # New watch faces go above this line.

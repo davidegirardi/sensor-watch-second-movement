@@ -85,4 +85,5 @@
 #include "archery_face.h"
 #include "simple_tally_face.h"
 #include "advanced_timer_face.h"
+#include "tide_face.h"
 // New includes go above this line.
