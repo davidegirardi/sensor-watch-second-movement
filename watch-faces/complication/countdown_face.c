@@ -334,22 +334,22 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            if (state->mode == cd_setting) {
-                        state->hours = 0;
-                        state->minutes = 0;
-                        state->seconds = 0;
-                        state->selection = 0;
-            } else {
-                abort_tap_detection(state);
-                state->mode = cd_setting;
-                movement_request_tick_frequency(4);
-                button_beep();
-                state->repeat = !state->repeat;
-                watch_indicator_t repeat = watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC ? WATCH_INDICATOR_BELL : WATCH_INDICATOR_LAP;
-                if(state->repeat)
-                    watch_set_indicator(repeat);
-                else
-                    watch_clear_indicator(repeat);
+            switch(state->mode) {
+                case cd_setting:
+                    state->hours = 0;
+                    state->minutes = 0;
+                    state->seconds = 0;
+                    state->selection = 0;
+                    break;
+                case cd_reset:
+                    abort_tap_detection(state);
+                    state->mode = cd_setting;
+                    movement_request_tick_frequency(4);
+                    button_beep();
+                    break;
+                case cd_paused:
+                case cd_running:
+                    break;
             }
             break;
         case EVENT_ALARM_LONG_UP:
