@@ -120,16 +120,16 @@ bool voltage_face_loop(movement_event_t event, void *context) {
     watch_date_time_t date_time = {0};
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
-            _voltage_face_update_display();
+            _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
+            gshock_display_current_time_top_right(true);
             break;
         case EVENT_TICK:
-            date_time = movement_get_local_date_time();
-            if (date_time.unit.second % 5 == 4) {
-                watch_set_indicator(WATCH_INDICATOR_SIGNAL);
-            } else if (date_time.unit.second % 5 == 0) {
-                _voltage_face_update_display();
-                watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
+            if(displaying_curr_volt) {
+                _voltage_face_blink_display(false);
+                gshock_display_current_time_top_right(false);
+            }
+            else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
+                _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), false);
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:

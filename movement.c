@@ -111,6 +111,9 @@ movement_volatile_state_t movement_volatile_state;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
+static uint16_t _voltage_last_read = 0;
+static float _temperature_last_read_c = (float)0xFFFFFFFF;
+static watch_date_time_t previous_date_time_gshock;
 
 // The note sequence of the default alarm
 int8_t alarm_tune[] = {
@@ -1012,6 +1015,32 @@ float movement_get_temperature(void) {
 #endif
 
     return temperature_c;
+}
+
+void gshock_display_current_time_top_right(bool update_immediately) {
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    if (movement_volatile_state.subsecond != 0 && !update_immediately) return;
+    watch_date_time_t date_time = movement_get_local_date_time();
+    char buf[4];
+    // If the hour needs updating or it's the first time displaying the time
+    if (update_immediately || date_time.unit.hour != previous_date_time_gshock.unit.hour) {
+        uint8_t hour = date_time.unit.hour;
+        watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+        watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        if (!movement_clock_is_24h()) {
+            if (hour >= 12) watch_set_indicator(WATCH_INDICATOR_PM);
+            hour %= 12;
+            if (hour == 0) hour = 12;
+        }
+        sprintf( buf, "%2d", hour);
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+    }
+    if (update_immediately || date_time.unit.minute != previous_date_time_gshock.unit.minute) {
+        sprintf( buf, "%02d", date_time.unit.minute);
+        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    }
+    previous_date_time_gshock.reg = date_time.reg;
+#endif
 }
 
 void app_init(void) {
