@@ -342,6 +342,16 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
             break;
+        case EVENT_TIMEOUT:
+            switch (state->status) {
+                case SW_STATUS_IDLE:
+                case SW_STATUS_STOPPED:
+                case SW_STATUS_STOPPED_LAPPING:
+                    movement_move_to_face(0);
+                default:
+                    break;
+            };
+            break;
         default:
             movement_default_loop_handler(event);
             break;
