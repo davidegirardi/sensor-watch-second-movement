@@ -121,7 +121,7 @@ bool voltage_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
-            gshock_display_current_time_top_right(true);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_TICK:
             if(displaying_curr_volt) {
@@ -133,7 +133,7 @@ bool voltage_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_MINUTE:
             if(displaying_curr_volt) {
-                gshock_display_current_time_top_right(false);
+                gshock_display_current_time_top_right();
             }
             break;
         case EVENT_BACKGROUND_TASK:

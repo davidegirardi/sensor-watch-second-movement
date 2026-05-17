@@ -155,9 +155,8 @@ static void _display_act(festival_schedule_state_t *state){
     watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
     sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
-    if (popularity <= max_pop_display && popularity > 0) {
-        sprintf(buf, "%2d", popularity);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    if (!state->cyc_through_all_acts && watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        gshock_display_current_time_top_right();
     } else {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
@@ -242,8 +241,17 @@ static void _display_festival_name_and_year() {
     char buf[3];
     sprintf(buf, "%.2s", festival_name);
     watch_display_text(WATCH_POSITION_TOP_LEFT, buf);
+<<<<<<< HEAD
     sprintf(buf, "%02d", _starting_time.unit.year + 20);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+=======
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        gshock_display_current_time_top_right();
+    } else {
+        sprintf(buf, "%02d", _starting_time.unit.year + 20);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    }
+>>>>>>> 6e4a6c05 (gshock_display_current_time_top_right now always triggers fully)
 }
 
 static bool _festival_occurring(watch_date_time_t curr_time, bool update_display){
@@ -634,7 +642,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
             if (!state->cyc_through_all_acts && 
                 (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT || 
                 state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE)) {
-                gshock_display_current_time_top_right(false);
+                gshock_display_current_time_top_right();
             }
             break;
         case EVENT_TIMEOUT:
