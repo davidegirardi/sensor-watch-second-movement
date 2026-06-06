@@ -1554,6 +1554,39 @@ bool app_loop(void) {
         event_type = event_type + next_event + 1;
     }
 
+    if (movement_volatile_state.tick_fired_second)
+    {
+        movement_volatile_state.tick_fired_second = false;
+#ifdef I2C_SERCOM
+        if (movement_state.counting_steps) {
+            if (movement_state.step_count_disable_req_sec > 0 && --movement_state.step_count_disable_req_sec == 0) {
+                if (!movement_state.count_steps_keep_on) movement_disable_step_count(true);
+            }
+            else if (movement_state.has_lis2dw) {
+                movement_count_new_steps_lis2dw();
+            }
+        }
+#endif
+        if (movement_volatile_state.turn_led_off && movement_volatile_state.light_button.is_down) {
+            // If the light is on after its timeout check to see if the LED button is still pressed, just in case the up event wasn't caught
+            cb_light_btn_interrupt();
+        }
+
+#if __EMSCRIPTEN__
+        // If we're on the simulator and we finally got the long/lat info, update it.
+        movement_location_t location = {0};
+        filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
+        if (location.reg == 0) {
+            location.bit.latitude = EM_ASM_INT({ return lat; });
+            location.bit.longitude = EM_ASM_INT({ return lon; });
+            if (location.reg != 0) {
+                filesystem_write_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
+                printf("Location set to: %d, %d\r\n", (int16_t)location.bit.latitude, (int16_t)location.bit.longitude);
+            }
+        }
+#endif
+    }
+
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {
         movement_volatile_state.minute_alarm_fired = false;
