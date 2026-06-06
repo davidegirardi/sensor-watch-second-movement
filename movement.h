@@ -308,9 +308,12 @@ typedef struct {
     // threshold for considering the wearer is in motion
     uint8_t accelerometer_motion_threshold;
 
-    // signal and alarm volumes
-    watch_buzzer_volume_t signal_volume;
-    watch_buzzer_volume_t alarm_volume;
+    bool counting_steps;
+    bool count_steps_keep_on;
+    bool count_steps_keep_off;
+    bool tap_enabled;
+    bool double_tap_enabled;
+    int8_t step_count_disable_req_sec;
 } movement_state_t;
 
 void movement_move_to_face(uint8_t watch_face_index);

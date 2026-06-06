@@ -968,8 +968,55 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
         uint8_t int1_sources = LIS2DW_CTRL4_INT1_SINGLE_TAP;
         if (enable_double_tap) {
             int1_sources |= LIS2DW_CTRL4_INT1_DOUBLE_TAP;
+            movement_state.double_tap_enabled = true;
         }
         lis2dw_configure_int1(int1_sources);
+        movement_state.tap_enabled = true;
+
+        return true;
+    }
+    else if (movement_state.has_lis2dux) {
+        lis2dux12_md_t md;
+        lis2dux12_tap_config_t val;
+        lis2dux12_pin_int_route_t int1_route;
+        lis2dux12_int_config_t int_mode;
+        if (!movement_state.counting_steps) {
+            lis2dux12_exit_deep_power_down(&dev_ctx);
+            /* Set bdu and if_inc recommended for driver usage */
+            lis2dux12_init_set(&dev_ctx, LIS2DUX12_SENSOR_ONLY_ON);
+        }
+
+        val.axis = LIS2DUX12_TAP_ON_Z;
+        val.pre_still_ths = 4;
+        val.post_still_ths = 5;
+        val.post_still_time = 3;
+        val.peak_ths = 3;
+        val.pre_still_start = 0;
+        val.pre_still_n = 5;
+        val.inverted_peak_time = 4;
+        val.shock_wait_time = 3;
+        val.rebound = 0;
+        val.latency = 4;
+        val.single_tap_on = PROPERTY_ENABLE;
+        if (enable_double_tap) {
+            val.double_tap_on = PROPERTY_ENABLE;
+            movement_state.double_tap_enabled = true;
+        }
+        val.wait_end_latency = 1;
+        lis2dux12_tap_config_set(&dev_ctx, val);
+
+        /* Configure interrupt pins */
+        lis2dux12_pin_int1_route_get(&dev_ctx, &int1_route);
+        int1_route.tap   = PROPERTY_ENABLE;
+        lis2dux12_pin_int1_route_set(&dev_ctx, &int1_route);
+        int_mode.int_cfg = LIS2DUX12_INT_LEVEL;
+        lis2dux12_int_config_set(&dev_ctx, &int_mode);
+
+        /* Set Output Data Rate */
+        md.fs =  LIS2DUX12_8g;
+        md.odr = LIS2DUX12_400Hz_LP;
+        lis2dux12_mode_set(&dev_ctx, &md);
+        movement_state.tap_enabled = true;
 
         return true;
     }
@@ -986,6 +1033,32 @@ bool movement_disable_tap_detection_if_available(void) {
         lis2dw_disable_double_tap();
         // ...disable Z axis (not sure if this is needed, does this save power?)...
         lis2dw_configure_tap_threshold(0, 0, 0, 0);
+        movement_state.tap_enabled = false;
+        movement_state.double_tap_enabled = false;
+
+        return true;
+    }
+    else if (movement_state.has_lis2dux) {
+        lis2dux12_tap_config_t tap_cfg;
+        lis2dux12_tap_config_get(&dev_ctx, &tap_cfg);
+        tap_cfg.single_tap_on = 0;
+        tap_cfg.double_tap_on = 0;
+        lis2dux12_tap_config_set(&dev_ctx, tap_cfg);
+        lis2dux12_md_t md;
+        if (movement_state.counting_steps) {
+            md.fs =  LIS2DUX12_16g;
+            md.bw = LIS2DUX12_ODR_div_4;
+            md.odr = LIS2DUX12_25Hz_ULP;
+            lis2dux12_mode_set(&dev_ctx, &md);
+        } else {
+            lis2dux12_mode_get(&dev_ctx, &md);
+            md.odr = movement_state.accelerometer_background_rate;
+            lis2dux12_mode_set(&dev_ctx, &md);
+            lis2dux12_init_set(&dev_ctx, LIS2DUX12_RESET);
+            lis2dux12_enter_deep_power_down(&dev_ctx, 1);
+        }
+        movement_state.tap_enabled = false;
+        movement_state.double_tap_enabled = false;
 
         return true;
     }
@@ -1192,8 +1265,12 @@ void app_init(void) {
 
     if (movement_state.accelerometer_motion_threshold == 0) movement_state.accelerometer_motion_threshold = 32;
 
-    movement_state.signal_volume = MOVEMENT_DEFAULT_SIGNAL_VOLUME;
-    movement_state.alarm_volume = MOVEMENT_DEFAULT_ALARM_VOLUME;
+    movement_state.counting_steps = false;
+    movement_state.count_steps_keep_on = false;
+    movement_state.count_steps_keep_off = false;
+    movement_state.tap_enabled = false;
+    movement_state.double_tap_enabled = false;
+    movement_state.step_count_disable_req_sec = -1;
     movement_state.light_on = false;
     movement_state.next_available_backup_register = 2;
     _movement_reset_inactivity_countdown();
@@ -1315,6 +1392,19 @@ void app_setup(void) {
 
         watch_faces[movement_state.current_face_idx].activate(watch_face_contexts[movement_state.current_face_idx]);
         movement_volatile_state.pending_events |=  1 << EVENT_ACTIVATE;
+        watch_clear_sleep_indicator_if_possible();
+
+#ifdef I2C_SERCOM
+        if (movement_state.count_steps_keep_on) {
+            movement_enable_step_count_multiple_attempts(3, true);
+        } else {
+            enable_disable_step_count_times(movement_get_local_date_time());
+        }
+
+        if (movement_state.tap_enabled) {
+            movement_enable_tap_detection_if_available(movement_state.double_tap_enabled);
+        }
+#endif
     }
 }
 
@@ -1509,7 +1599,8 @@ bool app_loop(void) {
 
         if (movement_state.tap_enabled) {
             movement_disable_tap_detection_if_available();
-            movement_state.tap_enabled = true; // This is to come back and reset it on wake
+            movement_state.tap_enabled = false; // This is to come back and reset it on wake
+            movement_state.double_tap_enabled = false;
         }
 #endif
 
