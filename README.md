@@ -1,4 +1,47 @@
-Second Movement
+Second Movement - Jolt Fork
+===============
+
+# Watch Faces
+
+### Main Faces
+  - clock_face
+  - step_counter_face
+  - fast_stopwatch_face
+  - countdown_face
+  - advanced_alarm_face
+  - tally_face
+  - sunrise_sunset_face
+  - moon_phase_face,
+### Start of Secondary Faces
+#### Done by holding the MODE button for 0.5 seconds on the clock
+  - settings_face
+    - Able to turn off the display and chiming, along with set the clock to go into that mode after 5 hours of the watch reading less than 27C (tested to be a good threshold for when the watch is likely not being worn).
+  - set_time_face
+  - temperature_logging_face
+  - voltage_face
+  - accelerometer_status_face
+### Game Faces
+#### Done by pressing START button holding the ALARM button for 1.5 seconds on the clock face
+  - black_jack_face
+  - endless_runner_face
+  - wordle_face
+  - higher_lower_game_face
+  - lander_face
+  - simon_face
+  - tarot_face
+
+# Other Changes
+  - [Uses COUNTER32 logic.](https://github.com/joeycastillo/second-movement/pull/65)
+  - When the watch wakes to chime, we don't display the seconds on the clock.
+  - Chime sound is the beginning of Song of the Storm from Zelda: Ocarina of Time.
+  - No ticking animation and all faces show SLEEP indicator when in sleep mode.
+  - Added debouncing.
+  - Made DST logic need far fewer caching.
+  - B and I look like 8 and 1 on the bottom of the face when not in seconds.
+  - Added a seriff to 7.
+  - [Improved off-axis viewing on custom LCD.](https://github.com/joeycastillo/second-movement/pull/79)
+  - 
+
 ===============
 
 This is the successor refactor of the Movement firmware for [Sensor Watch](https://www.sensorwatch.net).
@@ -11,7 +54,7 @@ You will need to install [the GNU Arm Embedded Toolchain](https://developer.arm.
 You will need to fetch the git submodules for this repository too, with `git submodule update --init --recursive` 
 
 
-Building Second Movement
+Building Your Own Movement
 ----------------------------
 You can build the default watch firmware with:
 
@@ -24,10 +67,14 @@ where `board_type` is any of:
 - sensorwatch_green  
 - sensorwatch_red (also known as Sensor Watch Lite)
 - sensorwatch_blue
+- sensorwatch_jolt
 
 and `display_type` is any of:
 - classic
 - custom
+- jolt
+
+If you're using this fork to build for the Jolt PCB (used for the G-Shock), running `make` on its own without selecting a board or diplsay type will work.
 
 Optionally you can set the watch time when building the firmware using `TIMESET=minute`. 
 
