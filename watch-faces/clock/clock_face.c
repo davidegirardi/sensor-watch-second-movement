@@ -332,6 +332,12 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
         case EVENT_ACTIVATE:
             current = movement_get_local_date_time();
+            print_time_debug(current, "Now");
+
+            if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
+                (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {
+                display_nighttime(state, current);
+            }
 
             clock_display_clock(state, current);
 
