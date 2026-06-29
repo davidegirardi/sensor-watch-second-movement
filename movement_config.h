@@ -52,12 +52,7 @@ const watch_face_t watch_faces[] = {
     higher_lower_game_face,
     lander_face,
     simon_face,
-#ifdef BUILD_TO_SHARE
     tarot_face,
-#else
-    party_face,
-    festival_schedule_face,
-#endif
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))

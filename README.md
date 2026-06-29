@@ -5,7 +5,6 @@ Second Movement - Jolt Fork
 
 ### Main Faces
   - clock_face
-  - step_counter_face
   - fast_stopwatch_face
   - countdown_face
   - advanced_alarm_face

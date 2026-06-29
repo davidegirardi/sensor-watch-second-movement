@@ -263,39 +263,6 @@ static void hourly_chime_setting_advance(void) {
     movement_set_hourly_chime_times(next_mode);
 }
 
-static void step_counter_setting_display(uint8_t subsecond) {
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "STEP", "STEP", "SC");
-    movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
-    if (when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED) {
-        watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");
-        return;
-    }
-    char buf[9];
-    if (subsecond % 2) {
-        switch (when_to_count_steps) {
-            case MOVEMENT_SC_OFF:
-                watch_display_text_with_fallback_and_gshock(WATCH_POSITION_BOTTOM, "OFF", "OFF", "   OFF");
-                break;
-            case MOVEMENT_SC_ALWAYS:
-                watch_display_text_with_fallback_and_gshock(WATCH_POSITION_BOTTOM, "Always", "Always"," Alway");
-                break;
-            case MOVEMENT_SC_DAYTIME:
-                sprintf(buf, "%d-%d", get_step_count_start_hour(), get_step_count_end_hour());
-                watch_display_text(WATCH_POSITION_BOTTOM, buf);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-static void step_counter_setting_advance(void) {
-    movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
-    if (when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED) return;
-    movement_step_count_option_t next_mode = (when_to_count_steps + 1) % MOVEMENT_SC_NOT_INSTALLED;
-    movement_set_when_to_count_steps(next_mode);
-}
-
 static void led_duration_setting_display(uint8_t subsecond) {
     char buf[8];
 
