@@ -94,9 +94,13 @@ typedef struct {
     volatile bool enter_sleep_mode;
     volatile bool exit_sleep_mode;
     volatile bool is_sleeping;
+    volatile bool enter_deep_sleep_mode;
+    volatile bool woke_for_buzzer;
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
+    volatile bool tick_fired_second;
+    volatile bool step_count_needs_updating;
     volatile bool is_buzzing;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
@@ -117,8 +121,6 @@ movement_volatile_state_t movement_volatile_state;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
-static uint16_t _voltage_last_read = 0;
-static float _temperature_last_read_c = (float)0xFFFFFFFF;
 
 // The note sequence of the default alarm
 int8_t alarm_tune[] = {
@@ -320,39 +322,8 @@ static uint64_t _movement_get_accelerometer_events() {
             accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
         }
     }
-    else if (movement_state.has_lis2dux) {
-        lis2dux12_all_sources_t int_src;
-        lis2dux12_all_sources_get(&dev_ctx, &int_src);
-#if PRINT_LIS_EVENTS
-        printf("_movement_get_accelerometer_events\r\n");
-        if (int_src.drdy)             printf("drdy:             %d\r\n", int_src.drdy);
-        if (int_src.free_fall)       printf("free_fall:        %d\r\n", int_src.free_fall);
-        if (int_src.wake_up)         printf("wake_up:          %d\r\n", int_src.wake_up);
-        if (int_src.wake_up_x)       printf("wake_up_x:        %d\r\n", int_src.wake_up_x);
-        if (int_src.wake_up_y)       printf("wake_up_y:        %d\r\n", int_src.wake_up_y);
-        if (int_src.wake_up_z)       printf("wake_up_z:        %d\r\n", int_src.wake_up_z);
-        if (int_src.single_tap)      printf("single_tap:       %d\r\n", int_src.single_tap);
-        if (int_src.double_tap)      printf("double_tap:       %d\r\n", int_src.double_tap);
-        if (int_src.triple_tap)      printf("triple_tap:       %d\r\n", int_src.triple_tap);
-        if (int_src.six_d)           printf("six_d:            %d\r\n", int_src.six_d);
-        if (int_src.six_d_xl)        printf("six_d_xl:         %d\r\n", int_src.six_d_xl);
-        if (int_src.six_d_xh)        printf("six_d_xh:         %d\r\n", int_src.six_d_xh);
-        if (int_src.six_d_yl)        printf("six_d_yl:         %d\r\n", int_src.six_d_yl);
-        if (int_src.six_d_yh)        printf("six_d_yh:         %d\r\n", int_src.six_d_yh);
-        if (int_src.six_d_zl)        printf("six_d_zl:         %d\r\n", int_src.six_d_zl);
-        if (int_src.six_d_zh)        printf("six_d_zh:         %d\r\n", int_src.six_d_zh);
-        if (int_src.sleep_change)    printf("sleep_change:     %d\r\n", int_src.sleep_change);
-        if (int_src.sleep_state)     printf("sleep_state:      %d\r\n", int_src.sleep_state);
+
 #endif
-        if (int_src.double_tap) {
-            accelerometer_events |= 1ULL << EVENT_DOUBLE_TAP;
-        }
-
-        if (int_src.single_tap) {
-            accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
-        }
-    }
-
     return accelerometer_events;
 }
 
@@ -436,11 +407,6 @@ static void _movement_handle_top_of_minute(void) {
     // update the DST offset cache every 30 minutes, since someplace in the world could change.
     if (date_time.unit.minute % 30 == 0) {
         _movement_update_dst_offset_cache();
-    }
-
-    // Don't turn off the display during hour where people are unlikely to wear it
-    if (date_time.unit.minute == 0 && movement_in_daytime_interval(date_time.unit.hour)) {
-        _check_for_deep_sleep();
     }
 
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
@@ -591,13 +557,7 @@ bool movement_default_loop_handler(movement_event_t event) {
             }
             break;
         case EVENT_START_BUTTON_UP:
-            if (can_go_to_teriary_face() ) {
-                if (movement_state.current_face_idx < MOVEMENT_TERIARY_FACE_INDEX) {
-                    go_to_teriary_face();
-                } else {
-                    movement_move_to_face(0);
-                }
-            }
+            movement_move_to_face(0);
             break;
         case EVENT_MODE_LONG_PRESS:
             if (MOVEMENT_SECONDARY_FACE_INDEX && movement_state.current_face_idx == 0) {
@@ -880,11 +840,15 @@ void movement_set_alarm_volume(watch_buzzer_volume_t value) {
 }
 
 movement_clock_mode_t movement_clock_mode_24h(void) {
-    return movement_state.settings.bit.clock_mode_24h ? MOVEMENT_CLOCK_MODE_24H : MOVEMENT_CLOCK_MODE_12H;
+    return movement_state.settings.bit.clock_mode_24h;
 }
 
 void movement_set_clock_mode_24h(movement_clock_mode_t value) {
-    movement_state.settings.bit.clock_mode_24h = (value == MOVEMENT_CLOCK_MODE_24H);
+    movement_state.settings.bit.clock_mode_24h = value;
+}
+
+bool movement_clock_is_24h(void) {
+    return movement_state.settings.bit.clock_mode_24h;
 }
 
 bool movement_use_imperial_units(void) {
@@ -978,46 +942,6 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
 
         return true;
     }
-    else if (movement_state.has_lis2dux) {
-        lis2dux12_md_t md;
-        lis2dux12_tap_config_t val;
-        lis2dux12_pin_int_route_t int1_route;
-        lis2dux12_int_config_t int_mode;
-
-        val.axis = LIS2DUX12_TAP_ON_Z;
-        val.pre_still_ths = 4;
-        val.post_still_ths = 5;
-        val.post_still_time = 3;
-        val.peak_ths = 3;
-        val.pre_still_start = 0;
-        val.pre_still_n = 5;
-        val.inverted_peak_time = 4;
-        val.shock_wait_time = 3;
-        val.rebound = 0;
-        val.latency = 4;
-        val.single_tap_on = PROPERTY_ENABLE;
-        if (enable_double_tap) {
-            val.double_tap_on = PROPERTY_ENABLE;
-            movement_state.double_tap_enabled = true;
-        }
-        val.wait_end_latency = 1;
-        lis2dux12_tap_config_set(&dev_ctx, val);
-
-        /* Configure interrupt pins */
-        lis2dux12_pin_int1_route_get(&dev_ctx, &int1_route);
-        int1_route.tap   = PROPERTY_ENABLE;
-        lis2dux12_pin_int1_route_set(&dev_ctx, &int1_route);
-        int_mode.int_cfg = LIS2DUX12_INT_LEVEL;
-        lis2dux12_int_config_set(&dev_ctx, &int_mode);
-
-        /* Set Output Data Rate */
-        md.fs =  LIS2DUX12_8g;
-        md.odr = LIS2DUX12_400Hz_LP;
-        lis2dux12_mode_set(&dev_ctx, &md);
-        movement_state.tap_enabled = true;
-
-        return true;
-    }
 
     return false;
 }
@@ -1031,23 +955,6 @@ bool movement_disable_tap_detection_if_available(void) {
         lis2dw_disable_double_tap();
         // ...disable Z axis (not sure if this is needed, does this save power?)...
         lis2dw_configure_tap_threshold(0, 0, 0, 0);
-        movement_state.tap_enabled = false;
-        movement_state.double_tap_enabled = false;
-
-        return true;
-    }
-    else if (movement_state.has_lis2dux) {
-        lis2dux12_tap_config_t tap_cfg;
-        lis2dux12_tap_config_get(&dev_ctx, &tap_cfg);
-        tap_cfg.single_tap_on = 0;
-        tap_cfg.double_tap_on = 0;
-        lis2dux12_tap_config_set(&dev_ctx, tap_cfg);
-        lis2dux12_md_t md;
-        lis2dux12_mode_get(&dev_ctx, &md);
-        md.odr = movement_state.accelerometer_background_rate;
-        lis2dux12_mode_set(&dev_ctx, &md);
-        lis2dux12_init_set(&dev_ctx, LIS2DUX12_RESET);
-        lis2dux12_enter_deep_power_down(&dev_ctx, 1);
         movement_state.tap_enabled = false;
         movement_state.double_tap_enabled = false;
 
@@ -1091,24 +998,6 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
     }
 
     return false;
-}
-
-uint8_t movement_get_lis2dw_awake(void) {
-#ifdef I2C_SERCOM
-    return _awake_state_lis2dw;
-#else
-    return 0;
-#endif
-}
-
-uint16_t movement_watch_get_vcc_voltage(void) {
-    uint16_t voltage = watch_get_vcc_voltage();
-    _voltage_last_read = voltage;
-    return voltage;
-}
-
-uint16_t movement_watch_get_last_read_vcc_voltage(void) {
-    return _voltage_last_read;
 }
 
 float movement_get_temperature(void) {
@@ -1224,7 +1113,7 @@ void app_init(void) {
     } else {
         // Otherwise set default values.
         movement_state.settings.bit.version = 0;
-        movement_state.settings.bit.clock_mode_24h = MOVEMENT_DEFAULT_24H_MODE;
+        movement_state.settings.bit.clock_mode_24h = MOVEMENT_DEFAULT_24H_MODE == 1;
         movement_state.settings.bit.time_zone = UTZ_UTC;
         movement_state.settings.bit.led_red_color = MOVEMENT_DEFAULT_RED_COLOR;
         movement_state.settings.bit.led_green_color = MOVEMENT_DEFAULT_GREEN_COLOR;
@@ -1276,6 +1165,8 @@ void app_init(void) {
 
     movement_state.tap_enabled = false;
     movement_state.double_tap_enabled = false;
+    movement_state.signal_volume = MOVEMENT_DEFAULT_SIGNAL_VOLUME;
+    movement_state.alarm_volume = MOVEMENT_DEFAULT_ALARM_VOLUME;
     movement_state.light_on = false;
     movement_state.next_available_backup_register = 2;
     _movement_reset_inactivity_countdown();
@@ -1397,7 +1288,6 @@ void app_setup(void) {
 
         watch_faces[movement_state.current_face_idx].activate(watch_face_contexts[movement_state.current_face_idx]);
         movement_volatile_state.pending_events |=  1 << EVENT_ACTIVATE;
-        watch_clear_sleep_indicator_if_possible();
 
     }
 }
@@ -1826,8 +1716,15 @@ void cb_sleep_timeout_interrupt(void) {
     movement_request_sleep();
 }
 
+void cb_mode_btn_extwake(void) {
+    movement_request_wake();
+}
+
+void cb_light_btn_extwake(void) {
+    movement_request_wake();
+}
+
 void cb_alarm_btn_extwake(void) {
-    // wake up!
     movement_request_wake();
 }
 

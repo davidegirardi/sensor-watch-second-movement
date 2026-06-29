@@ -119,7 +119,7 @@ static void clock_display_all(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
             date_time.unit.month
         );
         watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
@@ -127,9 +127,9 @@ static void clock_display_all(watch_date_time_t date_time) {
             buf,
             sizeof(buf),
 #ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%-2d",
 #else
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
 #endif
             date_time.unit.day
         );
@@ -138,7 +138,7 @@ static void clock_display_all(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
-            (lcd_type == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            (lcd_type == WATCH_LCD_TYPE_CUSTOM  && MOVEMENT_CLOCK_MODE_024H) ? "%02d" : "%2d",
             date_time.unit.day
         );
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -147,15 +147,12 @@ static void clock_display_all(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
+        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d" : "%2d%02d%02d",
         date_time.unit.hour,
         date_time.unit.minute,
         date_time.unit.second
     );
-
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    watch_display_text(WATCH_POSITION_BOTTOM, buf + 2);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
 static bool clock_display_some(watch_date_time_t current, watch_date_time_t previous) {
@@ -214,7 +211,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
             date_time.unit.month
         );
         watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
@@ -222,9 +219,9 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
             buf,
             sizeof(buf),
 #ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%-2d",
 #else
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
 #endif
             date_time.unit.day
         );
@@ -233,7 +230,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
-            (lcd_type == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+            "%2d",
             date_time.unit.day
         );
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -242,42 +239,10 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_has_leading_zeroes() ? "%02d%02d  " : "%2d%02d  ",
+        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d  " : "%2d%02d  ",
         date_time.unit.hour,
         date_time.unit.minute
     );
-
-static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
-    char buf[2 + 1];
-    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % (MOVEMENT_LAST_CLOCK_MODE + 1);
-    movement_set_clock_mode_24h(next_mode);
-    bool in_12h_mode = !movement_clock_is_24h();
-    bool indicate_pm = in_12h_mode && clock_is_pm(date_time);
-    if (in_12h_mode) {
-        date_time = clock_24h_to_12h(date_time);
-    }
-    clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
-    clock_indicate_24h();
-    watch_lcd_type_t lcd_type = watch_get_lcd_type();
-    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        if (date_time.unit.month < 10) {
-            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.month);
-            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
-        }
-        if (date_time.unit.day < 10) {
-#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%-2d", date_time.unit.day);
-#else
-            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
-#endif
-            watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
-        }
-    } else if (lcd_type == WATCH_LCD_TYPE_CUSTOM && date_time.unit.day < 10) {
-        snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    } 
-    snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.hour);
-    watch_display_text(WATCH_POSITION_HOURS, buf);
 }
 
 static void clock_start_tick_tock_animation(void) {
@@ -332,12 +297,6 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
         case EVENT_ACTIVATE:
             current = movement_get_local_date_time();
-            print_time_debug(current, "Now");
-
-            if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
-                (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {
-                display_nighttime(state, current);
-            }
 
             clock_display_clock(state, current);
 

@@ -350,12 +350,6 @@ void watch_stop_blink(void) {
     slcd_set_blink_enabled(false);
 }
 
-void watch_set_sleep_indicator_if_possible(void) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
-        watch_set_indicator(WATCH_INDICATOR_SLEEP);
-    }
-}
-
 void watch_start_sleep_animation(uint32_t duration) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
         // on pro LCD, we just show the sleep indicator
@@ -390,12 +384,6 @@ bool watch_sleep_animation_is_running(void) {
     } else {
         // CSREN indicates that the tick/tick animation is running
         return SLCD->CTRLD.bit.CSREN;
-    }
-}
-
-void watch_clear_sleep_indicator_if_possible(void) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
-        watch_clear_indicator(WATCH_INDICATOR_SLEEP);
     }
 }
 

@@ -46,18 +46,9 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
     watch_clear_indicator(WATCH_INDICATOR_PM);
     watch_clear_colon();
 
-    if (logger_state->display_index == TEMPERATURE_LOGGING_NUM_DATA_POINTS){
-        _temperature_logging_face_blink_display(in_fahrenheit, from_btn);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP ", "TE");
-        return;
-    }
-    watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
-
     if (pos < 0) {
         // no data at this index
         watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOG", "TL");
-        watch_clear_decimal_if_available();
         watch_display_text(WATCH_POSITION_BOTTOM, "no dat");
         sprintf(buf, "%2d", logger_state->display_index);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -72,9 +63,8 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
             date_time.unit.hour %= 12;
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
-        sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
-                ? "%02d" : "%2d", date_time.unit.day);
+        watch_display_text(WATCH_POSITION_TOP_LEFT, "AT");
+        sprintf(buf, "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         sprintf(buf, "%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -111,6 +101,7 @@ void temperature_logging_face_activate(void *context) {
 
 bool temperature_logging_face_loop(movement_event_t event, void *context) {
     temperature_logging_state_t *logger_state = (temperature_logging_state_t *)context;
+    bool displaying_curr_temp = logger_state->display_index == TEMPERATURE_LOGGING_NUM_DATA_POINTS;
     switch (event.event_type) {
         case EVENT_TIMEOUT:
             movement_move_to_face(0);
@@ -132,15 +123,12 @@ bool temperature_logging_face_loop(movement_event_t event, void *context) {
                 movement_move_to_next_face();
                 return false;
             }
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h());
             gshock_display_current_time_top_right();
             break;
         case EVENT_TICK:
-            if(displaying_curr_temp) {
-                _temperature_logging_face_blink_display(movement_use_imperial_units(), false);
-            }
-            else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
-                _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), false);
+            if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
+                _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h());
             }
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE

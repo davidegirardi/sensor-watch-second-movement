@@ -34,78 +34,6 @@ static void _voltage_face_update_display(void) {
     watch_display_float_with_best_effort(voltage, " V");
 }
 
-static void _voltage_face_blink_display(bool update_now) {
-    watch_date_time_t date_time = movement_get_local_date_time();
-    if (date_time.unit.second % 5 == 0 || update_now) {
-        _voltage_face_update_display();
-        watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
-    }
-    else if (date_time.unit.second % 5 == 4) {
-        watch_set_indicator(WATCH_INDICATOR_SIGNAL);
-        return;
-    }
-}
-
-static void _voltage_face_log_data(voltage_face_state_t *logger_state) {
-    watch_date_time_t date_time = movement_get_local_date_time();
-    size_t pos = logger_state->data_points % VOLTAGE_NUM_DATA_POINTS;
-
-    logger_state->data[pos].timestamp.reg = date_time.reg;
-    float voltage = (float)movement_watch_get_vcc_voltage() / 1000.0;
-    logger_state->data[pos].voltage = voltage;
-    logger_state->data_points++;
-}
-
-static void _voltage_face_logging_update_display(voltage_face_state_t *logger_state, bool clock_mode_24h, bool from_btn) {
-    int8_t pos = (logger_state->data_points - 1 - logger_state->display_index) % VOLTAGE_NUM_DATA_POINTS;
-    char buf[7];
-
-    watch_clear_indicator(WATCH_INDICATOR_24H);
-    watch_clear_indicator(WATCH_INDICATOR_PM);
-    watch_clear_colon();
-
-    if (logger_state->display_index == VOLTAGE_NUM_DATA_POINTS){
-        _voltage_face_blink_display(from_btn);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAT  ", "BA");
-        return;
-    }
-    watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
-
-    if (pos < 0) {
-        // no data at this index
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA");
-        watch_clear_decimal_if_available();
-        watch_display_text(WATCH_POSITION_BOTTOM, "no dat");
-        sprintf(buf, "%2d", logger_state->display_index);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    } else if (logger_state->ts_ticks) {
-        // we are displaying the timestamp in response to a button press
-        watch_date_time_t date_time = logger_state->data[pos].timestamp;
-        watch_set_colon();
-        if (clock_mode_24h) {
-            watch_set_indicator(WATCH_INDICATOR_24H);
-        } else {
-            if (date_time.unit.hour > 11) watch_set_indicator(WATCH_INDICATOR_PM);
-            date_time.unit.hour %= 12;
-            if (date_time.unit.hour == 0) date_time.unit.hour = 12;
-        }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
-        sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
-                ? "%02d" : "%2d", date_time.unit.day);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-        sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
-                date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
-        watch_display_text(WATCH_POSITION_BOTTOM, buf);
-    } else {
-        // we are displaying the voltage
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA");
-        sprintf(buf, "%2d", logger_state->display_index);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-        watch_display_float_with_best_effort(logger_state->data[pos].voltage, " V");
-    }
-}
-
 void voltage_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
     (void) context_ptr;
@@ -120,26 +48,23 @@ bool voltage_face_loop(movement_event_t event, void *context) {
     watch_date_time_t date_time = {0};
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
+            if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
             gshock_display_current_time_top_right();
             break;
         case EVENT_TICK:
-            if(displaying_curr_volt) {
-                _voltage_face_blink_display(false);
-            }
-            else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
-                _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), false);
+            date_time = movement_get_local_date_time();
+            if (date_time.unit.second % 5 == 4) {
+                watch_set_indicator(WATCH_INDICATOR_SIGNAL);
+            } else if (date_time.unit.second % 5 == 0) {
+                _voltage_face_update_display();
+                watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
             }
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
-            if(displaying_curr_volt) {
-                gshock_display_current_time_top_right();
-            }
+            gshock_display_current_time_top_right();
             break;
 #endif
-        case EVENT_BACKGROUND_TASK:
-            _voltage_face_log_data(logger_state);
             break;
         default:
             movement_default_loop_handler(event);

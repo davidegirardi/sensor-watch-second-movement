@@ -289,6 +289,9 @@ typedef struct {
     // background task handling
     bool has_scheduled_background_task;
 
+    // Dont' allow the display to be on while this is true;
+    bool is_deep_sleeping;
+
     // stuff for subsecond tracking
     uint8_t tick_frequency;
     uint8_t tick_pern;
@@ -311,7 +314,9 @@ typedef struct {
 
     bool tap_enabled;
     bool double_tap_enabled;
-    int8_t step_count_disable_req_sec;
+    // signal and alarm volumes
+    watch_buzzer_volume_t signal_volume;
+    watch_buzzer_volume_t alarm_volume;
 } movement_state_t;
 
 void movement_move_to_face(uint8_t watch_face_index);
@@ -319,6 +324,7 @@ void movement_move_to_next_face(void);
 
 bool movement_default_loop_handler(movement_event_t event);
 
+uint8_t movement_get_color_val(uint8_t led_color);
 void movement_illuminate_led(void);
 void movement_force_led_on(uint8_t red, uint8_t green, uint8_t blue);
 void movement_force_led_off(void);
@@ -379,6 +385,8 @@ void movement_set_alarm_volume(watch_buzzer_volume_t value);
 
 movement_clock_mode_t movement_clock_mode_24h(void);
 void movement_set_clock_mode_24h(movement_clock_mode_t value);
+
+bool movement_clock_is_24h(void);
 
 bool movement_use_imperial_units(void);
 void movement_set_use_imperial_units(bool value);
