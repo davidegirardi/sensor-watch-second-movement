@@ -39,20 +39,6 @@ const watch_face_t watch_faces[] = {
     voltage_face,
     settings_face,
     set_time_face,
-    voltage_face,
-    temperature_logging_face,
-#ifdef HAS_IR_SENSOR
-    light_sensor_face,
-#endif
-// Start of Teriary Faces
-    blackjack_face,
-    ping_face,
-    endless_runner_face,
-    wordle_face,
-    higher_lower_game_face,
-    lander_face,
-    simon_face,
-    tarot_face,
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))
@@ -129,7 +115,7 @@ const watch_face_t watch_faces[] = {
 #ifdef FORCE_GSHOCK_LCD_TYPE
 #define MOVEMENT_DEBOUNCE_TICKS 16
 #else
-#define MOVEMENT_DEBOUNCE_TICKS 4
+#define MOVEMENT_DEBOUNCE_TICKS 0
 #endif
 
 #endif // MOVEMENT_CONFIG_H_
