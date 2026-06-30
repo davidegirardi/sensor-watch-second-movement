@@ -86,4 +86,5 @@
 #include "advanced_timer_face.h"
 #include "archery_face.h"
 #include "simple_tally_face.h"
+#include "button_names_face.h"
 // New includes go above this line.

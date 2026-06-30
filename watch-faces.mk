@@ -61,4 +61,5 @@ SRCS += \
   ./watch-faces/complication/advanced_timer_face.c \
   ./watch-faces/complication/archery_face.c \
   ./watch-faces/complication/simple_tally_face.c \
+  ./watch-faces/demo/button_names_face.c \
 # New watch faces go above this line.
