@@ -282,6 +282,7 @@ bool days_since_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             _days_since_face_abort_quick_cycle(state);
             break;
         case EVENT_TIMEOUT:
