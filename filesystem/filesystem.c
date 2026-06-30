@@ -126,7 +126,7 @@ static int filesystem_ls(lfs_t *lfs, const char *path) {
             default:           printf("?    "); break;
         }
 
-        printf("%4ld bytes ", info.size);
+        printf("%4u bytes ", info.size);
 
         printf("%s\r\n", info.name);
     }
@@ -149,7 +149,7 @@ bool filesystem_init(void) {
         err = lfs_format(&eeprom_filesystem, &watch_lfs_cfg);
         if (err < 0) return false;
         err = lfs_mount(&eeprom_filesystem, &watch_lfs_cfg) == LFS_ERR_OK;
-        printf("Filesystem mounted with %ld bytes free.\r\n", filesystem_get_free_space());
+        printf("Filesystem mounted with %d bytes free.\r\n", filesystem_get_free_space());
     }
 
     return err == LFS_ERR_OK;
@@ -167,7 +167,7 @@ int _filesystem_format(void) {
 
     err = lfs_mount(&eeprom_filesystem, &watch_lfs_cfg);
     if (err < 0) return err;
-    printf("Filesystem re-mounted with %ld bytes free.\r\n", filesystem_get_free_space());
+    printf("Filesystem re-mounted with %d bytes free.\r\n", filesystem_get_free_space());
     return 0;
 }
 
@@ -321,7 +321,7 @@ int filesystem_cmd_b64encode(int argc, char *argv[]) {
 int filesystem_cmd_df(int argc, char *argv[]) {
     (void) argc;
     (void) argv;
-    printf("free space: %ld bytes\r\n", filesystem_get_free_space());
+    printf("free space: %d bytes\r\n", filesystem_get_free_space());
     return 0;
 }
 
