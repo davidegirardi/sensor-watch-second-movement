@@ -29,16 +29,22 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
-    world_clock_face,
-    sunrise_sunset_face,
-    moon_phase_face,
-    fast_stopwatch_face,
+    advanced_timer_face,
     countdown_face,
-    alarm_face,
-    temperature_display_face,
-    voltage_face,
+    fast_stopwatch_face,
+    advanced_alarm_face,
+    sunrise_sunset_face,
+    archery_face,
+    simple_tally_face,
+    pulsometer_face,
+    probability_face,
+    world_clock_face,
     settings_face,
     set_time_face,
+    finetune_face,
+    nanosec_face,
+    voltage_face,
+    all_segments_face,
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))
@@ -49,7 +55,7 @@ const watch_face_t watch_faces[] = {
  * Some folks also like to use this to hide the preferences and time set faces from the normal rotation.
  * If you don't want any faces to be excluded, set this to 0 and a long Mode press will have no effect.
  */
-#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_NUM_FACES - 5)
+#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_NUM_FACES - 7)
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
 #define SIGNAL_TUNE_DEFAULT
@@ -63,18 +69,17 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_DEFAULT_BLUE_COLOR 0x0  // Unused
 #else
 #define MOVEMENT_DEFAULT_RED_COLOR 0x0
-#define MOVEMENT_DEFAULT_GREEN_COLOR 0xF
-#define MOVEMENT_DEFAULT_BLUE_COLOR 0x0
-#endif
+#define MOVEMENT_DEFAULT_GREEN_COLOR 0x2
+#define MOVEMENT_DEFAULT_BLUE_COLOR 0x5
 
 /* Set to true for 24h mode or false for 12h mode */
-#define MOVEMENT_DEFAULT_24H_MODE false
+#define MOVEMENT_DEFAULT_24H_MODE true
 
 /* Enable or disable the sound on mode button press */
 #define MOVEMENT_DEFAULT_BUTTON_SOUND true
 
 #define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_SOFT
-#define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_LOUD
+#define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_SOFT
 #define MOVEMENT_DEFAULT_ALARM_VOLUME WATCH_BUZZER_VOLUME_LOUD
 
 /* Set the timeout before switching back to the main watch face
@@ -97,7 +102,7 @@ const watch_face_t watch_faces[] = {
  * 6: 1 day
  * 7: 7 days
  */
-#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 2
+#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 0
 
 /* Set the led duration
  * Valid values are:
