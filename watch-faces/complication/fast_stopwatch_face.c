@@ -363,10 +363,8 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
             break;
-<<<<<<< HEAD
         case EVENT_BACKGROUND_TASK:
             gshock_display_current_time_top_right();
-=======
         case EVENT_TIMEOUT:
             switch (state->status) {
                 case SW_STATUS_IDLE:
@@ -376,7 +374,6 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
                 default:
                     break;
             };
->>>>>>> dg/nitpicks
             break;
         default:
             movement_default_loop_handler(event);

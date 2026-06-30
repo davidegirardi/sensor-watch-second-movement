@@ -262,7 +262,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
             draw(state, event.subsecond);
             break;
-<<<<<<< HEAD
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
             gshock_display_current_time_top_right();
@@ -344,29 +343,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LIGHT_LONG_PRESS:
-<<<<<<< HEAD
-            if (state->mode == cd_setting) {
-                switch (state->selection) {
-                    case 0:
-                        state->hours = 0;
-                        // intentional fallthrough
-                    case 1:
-                        state->minutes = 0;
-                        // intentional fallthrough
-                    case 2:
-                        state->seconds = 0;
-                        break;
-                }
-            } else {
-                // Toggle auto-repeat
-                button_beep();
-                state->repeat = !state->repeat;
-                watch_indicator_t repeat = watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC ? WATCH_INDICATOR_BELL : WATCH_INDICATOR_LAP;
-                if(state->repeat)
-                    watch_set_indicator(repeat);
-                else
-                    watch_clear_indicator(repeat);
-=======
             switch(state->mode) {
                 case cd_setting:
                     state->hours = 0;
@@ -383,7 +359,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 case cd_paused:
                 case cd_running:
                     break;
->>>>>>> dg/my-countdown-face
             }
             break;
         case EVENT_ALARM_LONG_UP:

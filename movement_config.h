@@ -71,6 +71,7 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_DEFAULT_RED_COLOR 0x0
 #define MOVEMENT_DEFAULT_GREEN_COLOR 0x2
 #define MOVEMENT_DEFAULT_BLUE_COLOR 0x5
+#endif
 
 /* Set to true for 24h mode or false for 12h mode */
 #define MOVEMENT_DEFAULT_24H_MODE true
