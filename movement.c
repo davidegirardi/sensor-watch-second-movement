@@ -565,8 +565,8 @@ bool movement_default_loop_handler(movement_event_t event) {
                 movement_force_led_off();
             }
             break;
-        case EVENT_START_BUTTON_UP:
-            movement_move_to_face(0);
+        case EVENT_START_BUTTON_DOWN:
+            movement_illuminate_led();
             break;
         case EVENT_MODE_LONG_PRESS:
             if (MOVEMENT_SECONDARY_FACE_INDEX && movement_state.current_face_idx == 1) {
