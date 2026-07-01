@@ -50,6 +50,7 @@ bool voltage_face_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
             gshock_display_current_time_top_right();
+            _voltage_face_update_display();
             break;
         case EVENT_TICK:
             date_time = movement_get_local_date_time();
