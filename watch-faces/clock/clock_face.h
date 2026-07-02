@@ -38,6 +38,7 @@
  * This is the default display mode in most watch configurations.
  *
  * Long-press ALARM to toggle the hourly chime.
+ * On Jolt, long-press ADJUST to toggle button beeping.
  *
  */
 

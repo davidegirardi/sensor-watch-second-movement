@@ -330,7 +330,11 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_LONG_PRESS:
             clock_toggle_time_signal(state);
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_ADJUST_LONG_PRESS:
+#else
         case EVENT_ALARM_REALLY_LONG_PRESS:
+#endif
             // Toggle the button beep while blinking the bell indicator
             state->blink_bell_counter = 0;
             movement_request_tick_frequency(4);
