@@ -197,18 +197,18 @@ bool tally_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
         case EVENT_ALARM_BUTTON_DOWN:
-        case EVENT_START_BUTTON_DOWN:
+        case EVENT_ADJUST_BUTTON_DOWN:
             if (HAL_GPIO_BTN_MODE_read()) {
                 movement_illuminate_led();
                 using_led = true;
             }
             break;
-        case EVENT_START_BUTTON_UP:
+        case EVENT_ADJUST_BUTTON_UP:
             if (!_init_val) {
                 reset_tally(state, movement_button_should_sound(), beep_sequence);
             }
             break;
-        case EVENT_START_LONG_PRESS:
+        case EVENT_ADJUST_LONG_PRESS:
             if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
                 cycle_presets(state, movement_button_should_sound(), beep_sequence);
             }

@@ -71,7 +71,7 @@ const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 const uint64_t _movement_mode_button_events_mask = 0b111111 << EVENT_MODE_BUTTON_DOWN;
 const uint64_t _movement_light_button_events_mask = 0b111111 << EVENT_LIGHT_BUTTON_DOWN;
 const uint64_t _movement_alarm_button_events_mask = 0b111111 << EVENT_ALARM_BUTTON_DOWN;
-const uint64_t _movement_start_button_events_mask = 0b111111 << EVENT_START_BUTTON_DOWN;
+const uint64_t _movement_start_button_events_mask = 0b111111 << EVENT_ADJUST_BUTTON_DOWN;
 const uint64_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask | _movement_start_button_events_mask;
 
 typedef struct {
@@ -565,7 +565,7 @@ bool movement_default_loop_handler(movement_event_t event) {
                 movement_force_led_off();
             }
             break;
-        case EVENT_START_BUTTON_DOWN:
+        case EVENT_ADJUST_BUTTON_DOWN:
             movement_illuminate_led();
             break;
         case EVENT_MODE_LONG_PRESS:
@@ -1134,7 +1134,7 @@ void app_init(void) {
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    movement_volatile_state.start_button.down_event = EVENT_START_BUTTON_DOWN;
+    movement_volatile_state.start_button.down_event = EVENT_ADJUST_BUTTON_DOWN;
     movement_volatile_state.start_button.is_down = false;
     movement_volatile_state.start_button.down_timestamp = 0;
     movement_volatile_state.start_button.timeout_index = START_BUTTON_TIMEOUT;
@@ -1263,7 +1263,7 @@ void app_setup(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
 #ifdef FORCE_GSHOCK_LCD_TYPE
-        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ADJUST_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
 #endif
 
 #ifdef I2C_SERCOM
@@ -1580,8 +1580,8 @@ bool app_loop(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_extwake, INTERRUPT_TRIGGER_RISING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, INTERRUPT_TRIGGER_RISING);
 #ifdef FORCE_GSHOCK_LCD_TYPE
-        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_NONE);
-        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_extwake, INTERRUPT_TRIGGER_FALLING);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ADJUST_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ADJUST_pin(), cb_start_btn_extwake, INTERRUPT_TRIGGER_FALLING);
 #endif
 
         // _sleep_mode_app_loop takes over at this point and loops until exit_sleep_mode is set by the extwake handler,
@@ -1692,7 +1692,7 @@ void cb_alarm_btn_interrupt(void) {
 
 void cb_start_btn_interrupt(void) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    bool pin_level = HAL_GPIO_BTN_START_read();
+    bool pin_level = HAL_GPIO_BTN_ADJUST_read();
 
     movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.start_button);
 #endif
@@ -1756,7 +1756,7 @@ void cb_alarm_btn_timeout_interrupt(void) {
 
 void cb_start_btn_timeout_interrupt(void) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    bool pin_level = HAL_GPIO_BTN_START_read();
+    bool pin_level = HAL_GPIO_BTN_ADJUST_read();
     movement_button_t* button = &movement_volatile_state.start_button;
 
     movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);

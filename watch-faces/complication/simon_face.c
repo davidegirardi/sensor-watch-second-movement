@@ -302,7 +302,7 @@ bool simon_face_loop(movement_event_t event,
             }
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
-        case EVENT_START_BUTTON_UP:
+        case EVENT_ADJUST_BUTTON_UP:
             if (state->playing_state == SIMON_LISTENING_BACK) {
                 _simon_listen(SIMON_START_NOTE, state);
             }

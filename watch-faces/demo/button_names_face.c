@@ -62,13 +62,13 @@ bool button_names_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_DOWN:
             watch_display_text(WATCH_POSITION_BOTTOM, "Light ");
            break;
-        case EVENT_START_BUTTON_DOWN:
-            watch_display_text(WATCH_POSITION_BOTTOM, "StArt ");
+        case EVENT_ADJUST_BUTTON_DOWN:
+            watch_display_text(WATCH_POSITION_BOTTOM, "Adjust");
             break;
         case EVENT_MODE_LONG_PRESS:
             movement_move_to_next_face();
             break;
-        case EVENT_START_BUTTON_UP:
+        case EVENT_ADJUST_BUTTON_UP:
         case EVENT_MODE_BUTTON_UP:
         case EVENT_TIMEOUT:
             // Your watch face will receive this event after a period of inactivity. If it makes sense to resign,

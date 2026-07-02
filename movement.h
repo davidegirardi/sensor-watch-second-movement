@@ -139,12 +139,12 @@ typedef enum {
     EVENT_ALARM_LONG_UP,        // The alarm button was held for over half a second, and released.
     EVENT_ALARM_REALLY_LONG_PRESS, // The alarm button was held for more than 1.5 second, note yet released.
     EVENT_ALARM_REALLY_LONG_UP, // The alarm button was held for more than 1.5 second, and released.
-    EVENT_START_BUTTON_DOWN,    // The start button has been pressed, but not yet released. G-Shock only.
-    EVENT_START_BUTTON_UP,      // The start button was pressed for less than half a second, and released. G-Shock only.
-    EVENT_START_LONG_PRESS,     // The start button was held for over half a second, but not yet released. G-Shock only.
-    EVENT_START_LONG_UP,        // The start button was held for over half a second, and released. G-Shock only.
-    EVENT_START_REALLY_LONG_PRESS, // The start button was held for more than 1.5 second, note yet released. G-Shock only.
-    EVENT_START_REALLY_LONG_UP, // The start button was held for more than 1.5 second, and released. G-Shock only.
+    EVENT_ADJUST_BUTTON_DOWN,    // The start button has been pressed, but not yet released. G-Shock only.
+    EVENT_ADJUST_BUTTON_UP,      // The start button was pressed for less than half a second, and released. G-Shock only.
+    EVENT_ADJUST_LONG_PRESS,     // The start button was held for over half a second, but not yet released. G-Shock only.
+    EVENT_ADJUST_LONG_UP,        // The start button was held for over half a second, and released. G-Shock only.
+    EVENT_ADJUST_REALLY_LONG_PRESS, // The start button was held for more than 1.5 second, note yet released. G-Shock only.
+    EVENT_ADJUST_REALLY_LONG_UP, // The start button was held for more than 1.5 second, and released. G-Shock only.
 
     EVENT_ACCELEROMETER_WAKE,   // The accelerometer has detected motion and woken up.
     EVENT_SINGLE_TAP,           // Accelerometer detected a single tap.
