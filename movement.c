@@ -147,6 +147,7 @@ void cb_sleep_timeout_interrupt(void);
 void cb_buzzer_start(void);
 void cb_buzzer_stop(void);
 
+
 void cb_accelerometer_event(void);
 void cb_accelerometer_wake(void);
 
@@ -1580,6 +1581,7 @@ void cb_alarm_btn_extwake(void) {
 }
 
 void cb_minute_alarm_fired(void) {
+    movement_volatile_state.pending_events |= 1ULL << EVENT_MINUTE;
     movement_volatile_state.minute_alarm_fired = true;
 
 #if __EMSCRIPTEN__
@@ -1605,3 +1607,22 @@ void cb_accelerometer_wake(void) {
     // also: wake up!
     _movement_reset_inactivity_countdown();
 }
+
+void gshock_display_current_time_top_right(void) {
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    char buf[4];
+    watch_date_time_t date_time = movement_get_local_date_time();
+    watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+    watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+    uint8_t hour = date_time.unit.hour;
+    if (!movement_clock_mode_24h()) {
+        hour %= 12;
+        if (hour == 0) hour = 12;
+    }
+    sprintf( buf, "%2d", hour);
+    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+    sprintf( buf, "%02d", date_time.unit.minute);
+    watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+#endif
+}
+
