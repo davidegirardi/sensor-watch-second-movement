@@ -236,7 +236,7 @@ void clock_face_activate(void *context) {
 void animate_toggle_beep(clock_state_t *state, watch_date_time_t current) {
     watch_clear_colon();
     clock_indicate(WATCH_INDICATOR_BELL, state->blink_bell_counter++ % 2);
-    if (movement_button_should_sound()) {
+    if (movement_button_sound_enabled()) {
         watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8EEP y", "8EEP y");
     } else {
         watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8EEP n", "8EEP n");
@@ -281,7 +281,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
             // Toggle the button beep while blinking the bell indicator
             state->blink_bell_counter = 0;
             movement_request_tick_frequency(4);
-            movement_set_button_should_sound(!movement_button_should_sound());
+            movement_set_button_should_sound(!movement_button_sound_enabled());
             break;
         case EVENT_BACKGROUND_TASK:
             // uncomment this line to snap back to the clock face when the hour signal sounds:
