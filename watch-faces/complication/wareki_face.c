@@ -198,10 +198,6 @@ bool wareki_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             draw_wareki_splash(state);
             break;
-        case EVENT_MODE_BUTTON_UP:
-            movement_move_to_next_face();
-            break;
-
         case EVENT_LOW_ENERGY_UPDATE:
         case EVENT_TICK:          
 
@@ -245,6 +241,7 @@ bool wareki_loop(movement_event_t event, void *context) {
             movement_request_tick_frequency(8);
             break;
         case EVENT_LIGHT_LONG_UP:
+        case EVENT_LIGHT_REALLY_LONG_UP:
             //printf("LIGHTPRESS UP\n");
             _light_button_press = false;
             movement_request_tick_frequency(4);
@@ -264,6 +261,7 @@ bool wareki_loop(movement_event_t event, void *context) {
             movement_request_tick_frequency(8);
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             //printf("LONGPRESS UP\n");
             _alarm_button_press = false;
             movement_request_tick_frequency(4);

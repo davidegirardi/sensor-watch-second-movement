@@ -122,25 +122,25 @@ typedef enum {
     EVENT_LIGHT_LONG_PRESS,     // The light button was held for over half a second, but not yet released.
     EVENT_LIGHT_LONG_UP,        // The light button was held for over half a second, and released.
     EVENT_LIGHT_REALLY_LONG_PRESS, // The light button was held for more than 1.5 second, note yet released.
-    // EVENT_LIGHT_REALLY_LONG_UP, // The light button was held for more than 1.5 second, and released.
+    EVENT_LIGHT_REALLY_LONG_UP, // The light button was held for more than 1.5 second, and released.
     EVENT_MODE_BUTTON_DOWN,     // The mode button has been pressed, but not yet released.
     EVENT_MODE_BUTTON_UP,       // The mode button was pressed for less than half a second, and released.
     EVENT_MODE_LONG_PRESS,      // The mode button was held for over half a second, but not yet released.
     EVENT_MODE_LONG_UP,         // The mode button was held for over half a second, and released. NOTE: your watch face will resign immediately after receiving this event.
     EVENT_MODE_REALLY_LONG_PRESS, // The mode button was held for more than 1.5 second, note yet released.
-    // EVENT_MODE_REALLY_LONG_UP, // The mode button was held for more than 1.5 second, and released.
+    EVENT_MODE_REALLY_LONG_UP, // The mode button was held for more than 1.5 second, and released.
     EVENT_ALARM_BUTTON_DOWN,    // The alarm button has been pressed, but not yet released.
     EVENT_ALARM_BUTTON_UP,      // The alarm button was pressed for less than half a second, and released.
     EVENT_ALARM_LONG_PRESS,     // The alarm button was held for over half a second, but not yet released.
     EVENT_ALARM_LONG_UP,        // The alarm button was held for over half a second, and released.
     EVENT_ALARM_REALLY_LONG_PRESS, // The alarm button was held for more than 1.5 second, note yet released.
-    // EVENT_ALARM_REALLY_LONG_UP, // The alarm button was held for more than 1.5 second, and released.
+    EVENT_ALARM_REALLY_LONG_UP, // The alarm button was held for more than 1.5 second, and released.
     EVENT_ADJUST_BUTTON_DOWN,    // The adjust button has been pressed, but not yet released. G-Shock (jolt) only.
     EVENT_ADJUST_BUTTON_UP,      // The adjust button was pressed for less than half a second, and released. G-Shock (jolt) only.
     EVENT_ADJUST_LONG_PRESS,     // The adjust button was held for over half a second, but not yet released. G-Shock (jolt) only.
     EVENT_ADJUST_LONG_UP,        // The adjust button was held for over half a second, and released. G-Shock (jolt) only.
     EVENT_ADJUST_REALLY_LONG_PRESS, // The adjust button was held for more than 1.5 second, note yet released. G-Shock (jolt) only.
-    // EVENT_ADJUST_REALLY_LONG_UP, // The adjust button was held for more than 1.5 second, and released. G-Shock (jolt) only.
+    EVENT_ADJUST_REALLY_LONG_UP, // The adjust button was held for more than 1.5 second, and released. G-Shock (jolt) only.
 
     EVENT_ACCELEROMETER_WAKE,   // The accelerometer has detected motion and woken up.
     EVENT_SINGLE_TAP,           // Accelerometer detected a single tap. This event is not yet implemented.

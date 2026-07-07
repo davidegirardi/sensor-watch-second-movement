@@ -252,10 +252,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
             draw(state, event.subsecond);
             break;
-        case EVENT_MODE_BUTTON_UP:
-            abort_quick_ticks(state);
-            movement_move_to_next_face();
-            break;
         case EVENT_LIGHT_BUTTON_UP:
             switch(state->mode) {
                 case cd_running:
@@ -346,6 +342,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             abort_quick_ticks(state);
             break;
         case EVENT_BACKGROUND_TASK:

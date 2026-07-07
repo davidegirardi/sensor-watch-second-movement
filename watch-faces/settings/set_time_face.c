@@ -106,13 +106,14 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ALARM_LONG_UP:
+        case EVENT_ALARM_REALLY_LONG_UP:
             _abort_quick_ticks();
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             current_page = (current_page + 1) % SET_TIME_FACE_NUM_SETTINGS;
             *((uint8_t *)context) = current_page;
             break;
-        case EVENT_ALARM_BUTTON_UP:
+        case EVENT_ALARM_BUTTON_DOWN:
             _abort_quick_ticks();
             _handle_alarm_button(date_time, current_page);
             break;

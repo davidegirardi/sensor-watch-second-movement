@@ -63,11 +63,11 @@ watch_date_time_t scheduled_tasks[MOVEMENT_NUM_FACES];
 const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 600, 3600, 7200, 21600, 43200, 86400, 604800};
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 
-const uint32_t _movement_mode_button_events_mask = 0b11111 << EVENT_MODE_BUTTON_DOWN;
-const uint32_t _movement_light_button_events_mask = 0b11111 << EVENT_LIGHT_BUTTON_DOWN;
-const uint32_t _movement_alarm_button_events_mask = 0b11111 << EVENT_ALARM_BUTTON_DOWN;
-const uint32_t _movement_adjust_button_events_mask = 0b11111 << EVENT_ADJUST_BUTTON_DOWN;
-const uint32_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask | _movement_adjust_button_events_mask;
+const uint32_t _movement_mode_button_events_mask = 0b111111 << EVENT_MODE_BUTTON_DOWN;
+const uint32_t _movement_light_button_events_mask = 0b111111 << EVENT_LIGHT_BUTTON_DOWN;
+const uint32_t _movement_alarm_button_events_mask = 0b111111 << EVENT_ALARM_BUTTON_DOWN;
+const uint32_t _movement_adjust_button_events_mask = 0b111111 << EVENT_ADJUST_BUTTON_DOWN;
+const uint32_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask;
 
 typedef struct {
     movement_event_type_t down_event;
@@ -293,12 +293,12 @@ static uint32_t _movement_get_accelerometer_events() {
     uint8_t int_src = lis2dw_get_interrupt_source();
 
     if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
-        accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
+        accelerometer_events |= 1ULL << EVENT_DOUBLE_TAP;
         printf("Double tap!\r\n");
     }
 
     if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
-        accelerometer_events |= 1 << EVENT_SINGLE_TAP;
+        accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
         printf("Single tap!\r\n");
     }
 
@@ -354,8 +354,8 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         // If a button up or button long up occurred
         if (pending_events & (
             (1 << (button->down_event + 1)) |
-            (1 << (button->down_event + 3))
-            // (1 << (button->down_event + 5))
+            (1 << (button->down_event + 3)) |
+            (1 << (button->down_event + 5))
         )) {
             // We cancel the timeout if it hasn't fired yet
             watch_rtc_disable_comp_callback_no_schedule(button->timeout_index);
@@ -493,7 +493,7 @@ void movement_force_led_off(void) {
 
 bool movement_default_loop_handler(movement_event_t event) {
     switch (event.event_type) {
-        case EVENT_MODE_BUTTON_UP:
+        case EVENT_MODE_BUTTON_DOWN:
             movement_move_to_next_face();
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
@@ -501,12 +501,13 @@ bool movement_default_loop_handler(movement_event_t event) {
             break;
         case EVENT_LIGHT_BUTTON_UP:
         case EVENT_LIGHT_LONG_UP:
+        case EVENT_LIGHT_REALLY_LONG_UP:
             if (movement_state.settings.bit.led_duration == 0) {
                 movement_force_led_off();
             }
             break;
         case EVENT_MODE_LONG_PRESS:
-            if (MOVEMENT_SECONDARY_FACE_INDEX && movement_state.current_face_idx == 0) {
+            if (MOVEMENT_SECONDARY_FACE_INDEX && movement_state.current_face_idx == 1) {
                 movement_move_to_face(MOVEMENT_SECONDARY_FACE_INDEX);
             } else {
                 movement_move_to_face(0);
@@ -1460,8 +1461,7 @@ static movement_event_type_t _process_button_event(bool pin_level, movement_butt
         button->up_timestamp = counter;
 #endif
         if ((counter - button->down_timestamp) >= MOVEMENT_REALLY_LONG_PRESS_TICKS) {
-            // event_type = button->down_event + 5;
-            event_type = button->down_event + 3; // TODO: swith to REALLY_LONG_UP
+            event_type = button->down_event + 5;
         } else if ((counter - button->down_timestamp) >= MOVEMENT_LONG_PRESS_TICKS) {
             event_type = button->down_event + 3;
         } else {
@@ -1523,8 +1523,7 @@ static movement_event_type_t _process_button_longpress_timeout(bool pin_level, m
 #endif
         button->is_down = false;
         if (max_long_press) {
-            // return button->down_event + 5; // event_really_long_up
-            return button->down_event + 3; // event_long_up TODO: use really_long_up
+            return button->down_event + 5; // event_really_long_up
         } else if (really_long_press) {
             return button->down_event + 3; // event_long_up
         } else {
