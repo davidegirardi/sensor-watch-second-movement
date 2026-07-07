@@ -43,15 +43,15 @@ static watch_cb_t external_interrupt_start_callback = NULL;
 static eic_interrupt_trigger_t external_interrupt_start_trigger = INTERRUPT_TRIGGER_NONE;
 
 #if defined(FORCE_GSHOCK_LCD_TYPE)
-#define BTN_ID_START 1
+#define BTN_ID_ADJUST 1
 #define BTN_ID_LIGHT 4
 #else
-#define BTN_ID_START 4
+#define BTN_ID_ADJUST 4
 #define BTN_ID_LIGHT 1
 #endif
 #define BTN_ID_ALARM 3
 #define BTN_ID_MODE 2
-static const uint8_t BTN_IDS[] = { BTN_ID_ALARM, BTN_ID_LIGHT, BTN_ID_MODE, BTN_ID_START };
+static const uint8_t BTN_IDS[] = { BTN_ID_ALARM, BTN_ID_LIGHT, BTN_ID_MODE, BTN_ID_ADJUST };
 static EM_BOOL watch_invoke_interrupt_callback(const uint8_t button_id, eic_interrupt_trigger_t trigger);
 
 static EM_BOOL watch_invoke_key_callback(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData) {
@@ -67,7 +67,7 @@ static EM_BOOL watch_invoke_key_callback(int eventType, const EmscriptenKeyboard
             case 'a':
             case 'U':
             case 'u':
-                button_id = BTN_ID_START;
+                button_id = BTN_ID_ADJUST;
                 break;
             case 'L':
             case 'l':
@@ -112,7 +112,7 @@ static EM_BOOL watch_invoke_key_callback(int eventType, const EmscriptenKeyboard
                 break;
 #if defined(FORCE_GSHOCK_LCD_TYPE)
             case 'D': // ArrowDown
-                button_id = BTN_ID_START;
+                button_id = BTN_ID_ADJUST;
                 break;
 #else
             case 'D': // ArrowDown
@@ -212,9 +212,9 @@ static EM_BOOL watch_invoke_interrupt_callback(const uint8_t button_id, eic_inte
             callback = external_interrupt_alarm_callback;
             trigger = external_interrupt_alarm_trigger;
             break;
-        case BTN_ID_START:
+        case BTN_ID_ADJUST:
 #if defined(FORCE_GSHOCK_LCD_TYPE)
-            HAL_GPIO_BTN_START_write(level);
+            HAL_GPIO_BTN_ADJUST_write(level);
             callback = external_interrupt_start_callback;
             trigger = external_interrupt_start_trigger;
 #else
@@ -255,7 +255,7 @@ void watch_register_interrupt_callback(const uint8_t pin, watch_cb_t callback, e
         external_interrupt_alarm_callback = callback;
         external_interrupt_alarm_trigger = trigger;
 #if defined(FORCE_GSHOCK_LCD_TYPE)
-    } else if (pin == HAL_GPIO_BTN_START_pin()) {
+    } else if (pin == HAL_GPIO_BTN_ADJUST_pin()) {
         external_interrupt_start_callback = callback;
         external_interrupt_start_trigger = trigger;
 #endif

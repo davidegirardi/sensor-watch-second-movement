@@ -66,8 +66,8 @@ const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 const uint32_t _movement_mode_button_events_mask = 0b11111 << EVENT_MODE_BUTTON_DOWN;
 const uint32_t _movement_light_button_events_mask = 0b11111 << EVENT_LIGHT_BUTTON_DOWN;
 const uint32_t _movement_alarm_button_events_mask = 0b11111 << EVENT_ALARM_BUTTON_DOWN;
-const uint32_t _movement_start_button_events_mask = 0b11111 << EVENT_START_BUTTON_DOWN;
-const uint32_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask | _movement_start_button_events_mask;
+const uint32_t _movement_adjust_button_events_mask = 0b11111 << EVENT_ADJUST_BUTTON_DOWN;
+const uint32_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask | _movement_adjust_button_events_mask;
 
 typedef struct {
     movement_event_type_t down_event;
@@ -102,7 +102,7 @@ typedef struct {
     movement_button_t mode_button;
     movement_button_t light_button;
     movement_button_t alarm_button;
-    movement_button_t start_button;
+    movement_button_t adjust_button;
 
     // button events that will not be passed to the current face loop, but will instead passed directly to the default loop handler.
     volatile uint32_t passthrough_events;
@@ -314,18 +314,18 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         &movement_volatile_state.mode_button,
         &movement_volatile_state.light_button,
         &movement_volatile_state.alarm_button,
-        &movement_volatile_state.start_button
+        &movement_volatile_state.adjust_button
     };
 
     uint32_t button_events_masks[4] = {
         _movement_mode_button_events_mask,
         _movement_light_button_events_mask,
         _movement_alarm_button_events_mask,
-        _movement_start_button_events_mask
+        _movement_adjust_button_events_mask
     };
 
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    for (uint8_t i = 0; i < 4; i++) {  // the START button only exists on the G-Shock (jolt)
+    for (uint8_t i = 0; i < 4; i++) {  // the ADJUST button only exists on the G-Shock (jolt)
 #else
     for (uint8_t i = 0; i < 3; i++) {
 #endif
@@ -1011,11 +1011,11 @@ void app_init(void) {
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    movement_volatile_state.start_button.down_event = EVENT_START_BUTTON_DOWN;
-    movement_volatile_state.start_button.is_down = false;
-    movement_volatile_state.start_button.down_timestamp = 0;
-    movement_volatile_state.start_button.timeout_index = START_BUTTON_TIMEOUT;
-    movement_volatile_state.start_button.cb_longpress = cb_start_btn_timeout_interrupt;
+    movement_volatile_state.adjust_button.down_event = EVENT_ADJUST_BUTTON_DOWN;
+    movement_volatile_state.adjust_button.is_down = false;
+    movement_volatile_state.adjust_button.down_timestamp = 0;
+    movement_volatile_state.adjust_button.timeout_index = ADJUST_BUTTON_TIMEOUT;
+    movement_volatile_state.adjust_button.cb_longpress = cb_start_btn_timeout_interrupt;
 #endif
 
     movement_state.has_thermistor = thermistor_driver_init();
@@ -1135,7 +1135,7 @@ void app_setup(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
 #ifdef FORCE_GSHOCK_LCD_TYPE
-        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ADJUST_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
 #endif
 
 #ifdef I2C_SERCOM
@@ -1492,9 +1492,9 @@ void cb_alarm_btn_interrupt(void) {
 
 void cb_start_btn_interrupt(void) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    bool pin_level = HAL_GPIO_BTN_START_read();
+    bool pin_level = HAL_GPIO_BTN_ADJUST_read();
 
-    movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.start_button);
+    movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.adjust_button);
 #endif
 }
 
@@ -1556,8 +1556,8 @@ void cb_alarm_btn_timeout_interrupt(void) {
 
 void cb_start_btn_timeout_interrupt(void) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    bool pin_level = HAL_GPIO_BTN_START_read();
-    movement_button_t* button = &movement_volatile_state.start_button;
+    bool pin_level = HAL_GPIO_BTN_ADJUST_read();
+    movement_button_t* button = &movement_volatile_state.adjust_button;
 
     movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
 #endif
