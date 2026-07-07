@@ -43,8 +43,8 @@ static watch_cb_t external_interrupt_start_callback = NULL;
 static eic_interrupt_trigger_t external_interrupt_start_trigger = INTERRUPT_TRIGGER_NONE;
 
 #if defined(FORCE_GSHOCK_LCD_TYPE)
-#define BTN_ID_ADJUST 1
-#define BTN_ID_LIGHT 4
+#define BTN_ID_ADJUST 4
+#define BTN_ID_LIGHT 1
 #else
 #define BTN_ID_ADJUST 4
 #define BTN_ID_LIGHT 1
@@ -67,7 +67,7 @@ static EM_BOOL watch_invoke_key_callback(int eventType, const EmscriptenKeyboard
             case 'a':
             case 'U':
             case 'u':
-                button_id = BTN_ID_ADJUST;
+                button_id = BTN_ID_LIGHT;
                 break;
             case 'L':
             case 'l':
@@ -85,7 +85,7 @@ static EM_BOOL watch_invoke_key_callback(int eventType, const EmscriptenKeyboard
             case 's':
             case 'I':
             case 'i':
-                button_id = BTN_ID_LIGHT;
+                button_id = BTN_ID_ADJUST;
                 break;
 #else
             case 'A':
