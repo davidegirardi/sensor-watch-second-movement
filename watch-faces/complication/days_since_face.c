@@ -62,9 +62,9 @@ static void _days_since_face_update(days_since_state_t *state) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DAY", "DA");
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     if (julian_now_date < julian_since_date) {
-        sprintf(buf, "%6lu", julian_since_date - julian_now_date);
+        sprintf(buf, "%6u", julian_since_date - julian_now_date);
     } else {
-        sprintf(buf, "%6lu", julian_now_date - julian_since_date);
+        sprintf(buf, "%6u", julian_now_date - julian_since_date);
     }
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }

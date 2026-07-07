@@ -38,7 +38,7 @@
 #endif
 
 #ifndef PULSOMETER_FACE_CALIBRATION_INCREMENT
-#define PULSOMETER_FACE_CALIBRATION_INCREMENT (10)
+#define PULSOMETER_FACE_CALIBRATION_INCREMENT (9)
 #endif
 
 // tick frequency will be 2 to this power Hz (0 for 1 Hz, 2 for 4 Hz, etc.)
@@ -144,8 +144,8 @@ static void pulsometer_cycle_calibration(pulsometer_state_t *pulsometer, int8_t 
     int8_t last = pulsometer->calibration;
     pulsometer->calibration += increment;
 
-    if (pulsometer->calibration > 39) {
-        pulsometer->calibration = last == 39? 1 : 39;
+    if (pulsometer->calibration > 40) {
+        pulsometer->calibration = last == 40? 10 : 40;
     }
 
     pulsometer_display_calibration(pulsometer);
@@ -192,14 +192,11 @@ bool pulsometer_face_loop(movement_event_t event,void *context) {
         case EVENT_TICK:
             pulsometer_measure(pulsometer);
             break;
-        case EVENT_LIGHT_BUTTON_UP:
+        case EVENT_LIGHT_LONG_PRESS:
             pulsometer_cycle_calibration(pulsometer, 1);
             break;
-        case EVENT_LIGHT_LONG_UP:
+        case EVENT_LIGHT_REALLY_LONG_PRESS:
             pulsometer_cycle_calibration(pulsometer, PULSOMETER_FACE_CALIBRATION_INCREMENT);
-            break;
-        case EVENT_LIGHT_BUTTON_DOWN:
-            // Inhibit the LED
             break;
         case EVENT_TIMEOUT:
             movement_move_to_face(0);
