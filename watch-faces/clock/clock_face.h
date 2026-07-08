@@ -39,6 +39,11 @@
  *
  * Long-press ALARM to toggle the hourly chime.
  *
+ * On sensor watch:
+ * Really long-press ALARM to toggle button beeping
+ *
+ * On Jolt:
+ * Long-press ADJUST to toggle button beeping
  */
 
 #include "movement.h"
