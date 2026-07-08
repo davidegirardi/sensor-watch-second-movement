@@ -111,21 +111,48 @@ static void clock_toggle_time_signal(clock_state_t *state) {
 }
 
 static void clock_display_all(watch_date_time_t date_time) {
-    char buf[8 + 1];
+    char buf[6 + 1];
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        clock_indicate(WATCH_INDICATOR_BOX_DASH, true);
+        snprintf(
+            buf,
+            sizeof(buf),
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
+            date_time.unit.month
+        );
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        snprintf(
+            buf,
+            sizeof(buf),
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%-2d",
+#else
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
+#endif
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    } else {
+        snprintf(
+            buf,
+            sizeof(buf),
+            (lcd_type == WATCH_LCD_TYPE_CUSTOM  && MOVEMENT_CLOCK_MODE_024H) ? "%02d" : "%2d",
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    }
 
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d%02d" : "%2d%2d%02d%02d",
-        date_time.unit.day,
+        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d" : "%2d%02d%02d",
         date_time.unit.hour,
         date_time.unit.minute,
         date_time.unit.second
     );
-
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    watch_display_text(WATCH_POSITION_BOTTOM, buf + 2);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
 static bool clock_display_some(watch_date_time_t current, watch_date_time_t previous) {
@@ -178,18 +205,44 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     }
     char buf[8 + 1];
 
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        snprintf(
+            buf,
+            sizeof(buf),
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
+            date_time.unit.month
+        );
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        snprintf(
+            buf,
+            sizeof(buf),
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%-2d",
+#else
+            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
+#endif
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    } else {
+        snprintf(
+            buf,
+            sizeof(buf),
+            "%2d",
+            date_time.unit.day
+        );
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    }
+    
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d  " : "%2d%2d%02d  ",
-        date_time.unit.day,
+        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d  " : "%2d%02d  ",
         date_time.unit.hour,
         date_time.unit.minute
     );
-
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    watch_display_text(WATCH_POSITION_BOTTOM, buf + 2);
 }
 
 static void clock_start_tick_tock_animation(void) {
