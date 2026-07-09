@@ -1608,7 +1608,7 @@ void cb_accelerometer_wake(void) {
     _movement_reset_inactivity_countdown();
 }
 
-void gshock_display_current_time_top_right(void) {
+void movement_display_time_in_date_area(void) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
     char buf[4];
     watch_date_time_t date_time = movement_get_local_date_time();
