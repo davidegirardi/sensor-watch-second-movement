@@ -126,11 +126,7 @@ static void clock_display_all(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
-#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%-2d",
-#else
-            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
-#endif
+            "%2d",
             date_time.unit.day
         );
         watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
@@ -218,11 +214,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
-#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%-2d",
-#else
-            movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d",
-#endif
+            "%2d",
             date_time.unit.day
         );
         watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
