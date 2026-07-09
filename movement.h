@@ -430,4 +430,4 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold);
 // If the board has no temperature sensors, it will return 0xFFFFFFFF.
 float movement_get_temperature(void);
 
-void gshock_display_current_time_top_right(void);
+void movement_display_time_in_date_area(void);
