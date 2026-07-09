@@ -47,7 +47,10 @@
  *     timer slot in the following order: hours - minutes - seconds - timer repeat
  *   - Short-pressing the alarm button alters the current settings value.
  *   - Long-pressing the light button resumes to normal mode.
- * 
+ *
+ * For Jolt use the Adjust button instead. The ligth button only illuminates
+ * the display.
+ *
  */
 
 #include "movement.h"

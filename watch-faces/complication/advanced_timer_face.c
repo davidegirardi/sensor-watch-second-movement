@@ -235,14 +235,23 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
             }
             _draw(state, subsecond);
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_LIGHT_BUTTON_DOWN:
+            movement_illuminate_led();
+            break;
+        case EVENT_ADJUST_BUTTON_DOWN:
+#else
+        case EVENT_LIGHT_BUTTON_DOWN:
+#endif
             switch (state->mode) {
                 case at_pausing:
                     _reset(state);
                     _beep();
                     break;
                 case at_running:
+#ifndef FORCE_GSHOCK_LCD_TYPE
                     movement_illuminate_led();
+#endif
                     break;
                 case at_setting:
                     if (state->erase_timer_flag) {
@@ -288,7 +297,11 @@ bool advanced_timer_face_loop(movement_event_t event, void *context) {
             }
             _draw(state, subsecond);
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_ADJUST_LONG_PRESS:
+#else
         case EVENT_LIGHT_LONG_PRESS:
+#endif
             if (state->mode == at_waiting) {
                 state->current_timer = last_timer;
                 // initiate settings
