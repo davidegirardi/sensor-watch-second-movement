@@ -42,6 +42,11 @@ void all_segments_face_activate(void *context) {
         num_com = 4;
     }
 
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        num_com = 4;
+        num_seg = 27;
+    }
+
     for (int com = 0; com < num_com; com++) {
         for (int seg = 0; seg < num_seg; seg++) {
             watch_set_pixel(com, seg);
