@@ -29,11 +29,17 @@
 /*
  * Simple Tally FAce
  *
- * Alarm: increment
  *
- * Light: decrement
+ * On Sensor Watch:
+ * - Alarm: increment
+ * - Light: decrement
+ * - Long press Light: reset
  *
- * Long press Light: reset
+ * On Jolt:
+ * - Alarm: increment
+ * - Adjust: decrement
+ * - Long press Adjust: reset
+ * - Light: illuminate
  *
  * Min: 0
  *

@@ -113,12 +113,20 @@ bool simple_tally_face_loop(movement_event_t event, void *context) {
             // empty case for EVENT_LIGHT_BUTTON_DOWN.
             movement_illuminate_led();
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_ADJUST_BUTTON_DOWN:
+#else
         case EVENT_LIGHT_LONG_PRESS:
+#endif
             simple_tally_face_decrement(state);
             button_beep(state);
             draw(state);
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_ADJUST_LONG_PRESS:
+#else
         case EVENT_LIGHT_REALLY_LONG_PRESS:
+#endif
             if (!_init_val) {
                 state->simple_tally_counter = SIMPLE_TALLY_FACE_MIN;
                 _init_val = true;
