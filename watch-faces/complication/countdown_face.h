@@ -29,11 +29,11 @@
  * COUNTDOWN TIMER face
  *
  * Rework of the extension of the original countdown face by Wesley Ellis.
- *   - Hold down the light button to enter setting mode and adjust the
- *     countdown timer.
+ *   - Hold down the light (adjust on Jolt) button to enter setting mode and
+ *     adjust the countdown timer.
  *   - Start and pause the countdown using the alarm button, similar
  *     to the stopwatch face.
- *   - When paused or terminated, press the light button to restore the
+ *   - When paused or terminated, press the light (adjust) button to restore the
  *     last entered countdown.
  *
  * Max countdown is 23 hours, 59 minutes and 59 seconds.

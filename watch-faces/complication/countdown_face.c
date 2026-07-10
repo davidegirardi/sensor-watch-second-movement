@@ -262,11 +262,17 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
             draw(state, event.subsecond);
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_ADJUST_BUTTON_DOWN:
+#else
         case EVENT_LIGHT_BUTTON_DOWN:
+#endif
             switch(state->mode) {
                 case cd_running:
                 case cd_reset:
-                    movement_illuminate_led();
+#ifndef FORCE_GSHOCK_LCD_TYPE
+                        movement_illuminate_led();
+#endif
                     break;
                 case cd_paused:
                     reset(state);
@@ -333,7 +339,11 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     break;
             }
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_ADJUST_LONG_PRESS:
+#else
         case EVENT_LIGHT_LONG_PRESS:
+#endif
             switch(state->mode) {
                 case cd_setting:
                     state->hours = 0;
